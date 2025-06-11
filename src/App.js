@@ -109,10 +109,7 @@ function App() {
             color: '#6c757d',
             fontSize: '0.9em'
           }}>
-            <li>Surveillance temps réel</li>
-            <li>Alertes automatiques</li>
-            <li>Graphiques détaillés</li>
-            <li>Contrôle à distance</li>
+
           </ul>
         </div>
       </div>
@@ -204,7 +201,7 @@ function App() {
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder=""
                 style={{ 
                   width: '100%', 
                   padding: '12px', 

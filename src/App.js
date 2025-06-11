@@ -109,6 +109,10 @@ function App() {
             color: '#6c757d',
             fontSize: '0.9em'
           }}>
+            <li>Surveillance temps réel</li>
+            <li>Alertes automatiques</li>
+            <li>Graphiques détaillés</li>
+            <li>Contrôle à distance</li>
           </ul>
         </div>
       </div>
@@ -200,7 +204,7 @@ function App() {
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder=""
+                placeholder="••••••••"
                 style={{ 
                   width: '100%', 
                   padding: '12px', 
@@ -258,19 +262,6 @@ function App() {
             >
               ← Retour à l'accueil
             </button>
-          </div>
-
-          {/* Demo credentials */}
-          <div style={{ 
-            marginTop: '20px', 
-            padding: '15px', 
-            backgroundColor: '#e3f2fd', 
-            borderRadius: '8px',
-            fontSize: '12px',
-            color: '#1976d2'
-          }}>
-            <strong>🧪 Mode démo :</strong><br/>
-            Utilisez n'importe quel email et mot de passe pour vous connecter
           </div>
         </div>
       </div>

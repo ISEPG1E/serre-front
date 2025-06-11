@@ -200,7 +200,7 @@ function App() {
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder=""
                 style={{ 
                   width: '100%', 
                   padding: '12px', 

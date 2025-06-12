@@ -7,7 +7,7 @@ function App() {
   const [draggedPlant, setDraggedPlant] = useState(null);
   const [selectedPlant, setSelectedPlant] = useState(null);
 
-  // État de la grille de la serre (4x10 = 40 cases)
+  // État de la grille de la serre (10x4 = 40 cases, disposition verticale)
   const [greenhouseGrid, setGreenhouseGrid] = useState(
     Array.from({ length: 40 }, (_, index) => {
       // Quelques plants par défaut
@@ -26,7 +26,7 @@ function App() {
     { name: 'Courgette', emoji: '🥒', duration: '2-3 mois' },
     { name: 'Poivron', emoji: '🫑', duration: '3-4 mois' },
     { name: 'Aubergine', emoji: '🍆', duration: '4-5 mois' },
-    { name: 'Herbes', emoji: '🌿', duration: '1-3 mois' }
+    { name: 'Concombre', emoji: '🥒', duration: '2-3 mois' }
   ];
 
   // Fonction de connexion
@@ -742,34 +742,6 @@ function App() {
               </div>
             </div>
 
-            {/* Contrôles de Monitoring */}
-            <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', margin: '20px 0' }}>
-              <h3>Contrôles de Monitoring</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', alignItems: 'center' }}>
-                <div>
-                  <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>Intervalle de mise à jour</label>
-                  <select style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ddd', width: '100%' }}>
-                    <option>5 secondes</option>
-                    <option>10 secondes</option>
-                    <option>30 secondes</option>
-                    <option>1 minute</option>
-                  </select>
-                </div>
-                <div>
-                  <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>Seuil temp. (°C)</label>
-                  <input type="number" defaultValue="30" style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ddd', width: '100%' }} />
-                </div>
-                <div>
-                  <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>Seuil hum. (%)</label>
-                  <input type="number" defaultValue="80" style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ddd', width: '100%' }} />
-                </div>
-                <div>
-                  <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>IP Carte Thot</label>
-                  <input type="text" defaultValue="192.168.1.100" style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ddd', width: '100%' }} />
-                </div>
-              </div>
-            </div>
-
             {/* Évolution des Capteurs avec graphique simulé */}
             <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
               <h3>Évolution des Capteurs</h3>
@@ -875,147 +847,189 @@ function App() {
           <div>
             <h1>🌱 Gestion de ma serre</h1>
             
-            {/* Sélection des plants */}
-            <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', marginBottom: '20px' }}>
-              <h3>Sélectionnez vos plants</h3>
-              <p style={{ color: '#666', marginBottom: '15px' }}>
-                Glissez-déposez les plantes dans la serre ou cliquez pour sélectionner puis cliquer sur une case
-              </p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '15px', margin: '20px 0' }}>
-                {availablePlants.map((plant, index) => (
-                  <div 
-                    key={index} 
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, plant)}
-                    onClick={() => setSelectedPlant(selectedPlant?.name === plant.name ? null : plant)}
-                    style={{ 
-                      textAlign: 'center', 
-                      padding: '15px', 
-                      border: `3px solid ${selectedPlant?.name === plant.name ? '#27ae60' : '#e0e0e0'}`, 
-                      borderRadius: '8px', 
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      backgroundColor: selectedPlant?.name === plant.name ? '#e8f5e8' : 'white'
-                    }}
-                  >
-                    <div style={{ fontSize: '32px', marginBottom: '8px' }}>{plant.emoji}</div>
-                    <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '4px' }}>{plant.name}</div>
-                    <div style={{ fontSize: '11px', color: '#666' }}>{plant.duration}</div>
-                  </div>
-                ))}
-              </div>
-              {selectedPlant && (
+            {/* Layout principal avec serre à gauche et sélection à droite */}
+            <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+              
+              {/* Disposition de la serre 10x4 */}
+              <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', flex: '1', minWidth: '400px' }}>
+                <h3>Disposition de votre serre (10x4 cases)</h3>
+                <p style={{ color: '#666', marginBottom: '20px' }}>
+                  Drag & Drop ou cliquez avec une plante sélectionnée pour planter. Cliquez sur une case plantée pour la vider.
+                </p>
+                
                 <div style={{ 
-                  padding: '10px', 
-                  backgroundColor: '#e8f5e8', 
-                  borderRadius: '4px', 
-                  textAlign: 'center',
-                  border: '1px solid #27ae60'
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(4, 1fr)', 
+                  gap: '4px', 
+                  maxWidth: '400px',
+                  margin: '0 auto',
+                  padding: '20px',
+                  backgroundColor: '#8B4513',
+                  borderRadius: '8px'
                 }}>
-                  <strong>{selectedPlant.emoji} {selectedPlant.name} sélectionné</strong> - Cliquez sur une case pour planter
+                  {greenhouseGrid.map((cell, index) => (
+                    <div 
+                      key={index} 
+                      onClick={() => handleGridCellClick(index)}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, index)}
+                      style={{
+                        width: '60px',
+                        height: '60px',
+                        backgroundColor: cell ? '#27ae60' : '#8FBC8F',
+                        border: '2px solid #556B2F',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '24px',
+                        transition: 'all 0.3s ease',
+                        position: 'relative'
+                      }}
+                      onMouseOver={(e) => {
+                        if (!cell) e.target.style.backgroundColor = '#98FB98';
+                      }}
+                      onMouseOut={(e) => {
+                        if (!cell) e.target.style.backgroundColor = '#8FBC8F';
+                      }}
+                    >
+                      {cell && (
+                        <div
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, cell, true, index)}
+                          style={{ cursor: 'move' }}
+                        >
+                          {cell.emoji}
+                        </div>
+                      )}
+                      {!cell && (
+                        <div style={{ 
+                          fontSize: '14px', 
+                          color: '#556B2F', 
+                          fontWeight: 'bold' 
+                        }}>
+                          +
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              )}
-            </div>
+                
+                <div style={{ marginTop: '20px', display: 'flex', gap: '20px', justifyContent: 'center', fontSize: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <div style={{ width: '20px', height: '20px', backgroundColor: '#27ae60', borderRadius: '4px' }}></div>
+                    <span>Case plantée</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <div style={{ width: '20px', height: '20px', backgroundColor: '#8FBC8F', borderRadius: '4px' }}></div>
+                    <span>Case vide</span>
+                  </div>
+                </div>
 
-            {/* Disposition de la serre 4x10 */}
-            <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-              <h3>Disposition de votre serre (4x10 cases)</h3>
-              <p style={{ color: '#666', marginBottom: '20px' }}>
-                Drag & Drop ou cliquez avec une plante sélectionnée pour planter. Cliquez sur une case plantée pour la vider.
-              </p>
-              
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(10, 1fr)', 
-                gap: '4px', 
-                maxWidth: '800px',
-                margin: '0 auto',
-                padding: '20px',
-                backgroundColor: '#8B4513',
-                borderRadius: '8px'
-              }}>
-                {greenhouseGrid.map((cell, index) => (
-                  <div 
-                    key={index} 
-                    onClick={() => handleGridCellClick(index)}
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, index)}
-                    style={{
-                      width: '60px',
-                      height: '60px',
-                      backgroundColor: cell ? '#27ae60' : '#8FBC8F',
-                      border: '2px solid #556B2F',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '24px',
-                      transition: 'all 0.3s ease',
-                      position: 'relative'
-                    }}
-                    onMouseOver={(e) => {
-                      if (!cell) e.target.style.backgroundColor = '#98FB98';
-                    }}
-                    onMouseOut={(e) => {
-                      if (!cell) e.target.style.backgroundColor = '#8FBC8F';
-                    }}
-                  >
-                    {cell && (
-                      <div
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, cell, true, index)}
-                        style={{ cursor: 'move' }}
-                      >
-                        {cell.emoji}
+                {/* Statistiques */}
+                <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+                  <h4>📊 Statistiques de la serre</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '15px' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#27ae60' }}>
+                        {greenhouseGrid.filter(cell => cell).length}/40
                       </div>
-                    )}
-                    {!cell && (
-                      <div style={{ 
-                        fontSize: '14px', 
-                        color: '#556B2F', 
-                        fontWeight: 'bold' 
-                      }}>
-                        +
+                      <div style={{ fontSize: '12px', color: '#666' }}>Cases occupées</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#3498db' }}>
+                        {Math.round((greenhouseGrid.filter(cell => cell).length / 40) * 100)}%
                       </div>
-                    )}
+                      <div style={{ fontSize: '12px', color: '#666' }}>Taux d'occupation</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#e74c3c' }}>
+                        {40 - greenhouseGrid.filter(cell => cell).length}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#666' }}>Cases libres</div>
+                    </div>
                   </div>
-                ))}
-              </div>
-              
-              <div style={{ marginTop: '20px', display: 'flex', gap: '20px', justifyContent: 'center', fontSize: '14px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <div style={{ width: '20px', height: '20px', backgroundColor: '#27ae60', borderRadius: '4px' }}></div>
-                  <span>Case plantée</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <div style={{ width: '20px', height: '20px', backgroundColor: '#8FBC8F', borderRadius: '4px' }}></div>
-                  <span>Case vide</span>
                 </div>
               </div>
 
-              {/* Statistiques */}
-              <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
-                <h4>📊 Statistiques de la serre</h4>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px' }}>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#27ae60' }}>
-                      {greenhouseGrid.filter(cell => cell).length}/40
+              {/* Sélection des plants - Panel vertical à droite */}
+              <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', width: '280px', flexShrink: 0 }}>
+                <h3>🌱 Plantes disponibles</h3>
+                <p style={{ color: '#666', marginBottom: '15px', fontSize: '14px' }}>
+                  Glissez-déposez ou cliquez pour sélectionner
+                </p>
+                
+                {/* Liste verticale des plantes */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {availablePlants.map((plant, index) => (
+                    <div 
+                      key={index} 
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, plant)}
+                      onClick={() => setSelectedPlant(selectedPlant?.name === plant.name ? null : plant)}
+                      style={{ 
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        padding: '12px', 
+                        border: `2px solid ${selectedPlant?.name === plant.name ? '#27ae60' : '#e0e0e0'}`, 
+                        borderRadius: '8px', 
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        backgroundColor: selectedPlant?.name === plant.name ? '#e8f5e8' : 'white'
+                      }}
+                      onMouseOver={(e) => {
+                        if (selectedPlant?.name !== plant.name) {
+                          e.currentTarget.style.backgroundColor = '#f8f9fa';
+                        }
+                      }}
+                      onMouseOut={(e) => {
+                        if (selectedPlant?.name !== plant.name) {
+                          e.currentTarget.style.backgroundColor = 'white';
+                        }
+                      }}
+                    >
+                      <div style={{ fontSize: '32px', flexShrink: 0 }}>{plant.emoji}</div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '2px' }}>{plant.name}</div>
+                        <div style={{ fontSize: '11px', color: '#666' }}>{plant.duration}</div>
+                      </div>
+                      {selectedPlant?.name === plant.name && (
+                        <div style={{ color: '#27ae60', fontSize: '16px' }}>✓</div>
+                      )}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>Cases occupées</div>
+                  ))}
+                </div>
+                
+                {selectedPlant && (
+                  <div style={{ 
+                    marginTop: '15px',
+                    padding: '12px', 
+                    backgroundColor: '#e8f5e8', 
+                    borderRadius: '6px', 
+                    textAlign: 'center',
+                    border: '1px solid #27ae60',
+                    fontSize: '14px'
+                  }}>
+                    <strong>{selectedPlant.emoji} {selectedPlant.name}</strong><br />
+                    <span style={{ color: '#666' }}>Cliquez sur une case pour planter</span>
                   </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#3498db' }}>
-                      {Math.round((greenhouseGrid.filter(cell => cell).length / 40) * 100)}%
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>Taux d'occupation</div>
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#e74c3c' }}>
-                      {40 - greenhouseGrid.filter(cell => cell).length}
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>Cases libres</div>
-                  </div>
+                )}
+
+                {/* Instructions d'utilisation */}
+                <div style={{ 
+                  marginTop: '20px', 
+                  padding: '12px', 
+                  backgroundColor: '#f8f9fa', 
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  color: '#666'
+                }}>
+                  <strong>💡 Instructions :</strong><br />
+                  • Glissez-déposez dans la serre<br />
+                  • Ou cliquez puis cliquez sur une case<br />
+                  • Cliquez sur une plante pour la retirer
                 </div>
               </div>
             </div>
@@ -1217,9 +1231,6 @@ function App() {
             <button onClick={() => setCurrentPage('greenhouse')} style={getNavButtonStyle('greenhouse')}>
               🌱 Gestion de ma serre
             </button>
-            <button onClick={() => setCurrentPage('profile')} style={getNavButtonStyle('profile')}>
-              👤 Profil
-            </button>
             <button onClick={() => setCurrentPage('humidity')} style={getNavButtonStyle('humidity')}>
               💧 Humidité
             </button>
@@ -1228,6 +1239,9 @@ function App() {
             </button>
             <button onClick={() => setCurrentPage('light')} style={getNavButtonStyle('light')}>
               ☀️ Luminosité
+            </button>
+            <button onClick={() => setCurrentPage('profile')} style={getNavButtonStyle('profile')}>
+              👤 Profil
             </button>
           </div>
 

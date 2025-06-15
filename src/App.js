@@ -1,4 +1,165 @@
 import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+
+// Composant de navigation
+const Navigation = ({ isLoggedIn, currentPage, setCurrentPage, handleLogout, showMobileMenu, setShowMobileMenu }) => {
+  const navigate = useNavigate();
+
+  const getNavButtonStyle = (page) => ({
+    padding: '10px 15px',
+    backgroundColor: currentPage === page ? '#27ae60' : 'rgba(255,255,255,0.1)',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: currentPage === page ? 'bold' : 'normal'
+  });
+
+  const handleNavigation = (page) => {
+    setCurrentPage(page);
+    navigate(`/${page}`);
+  };
+
+  return (
+    <nav style={{ 
+      padding: '20px', 
+      backgroundColor: '#2c3e50', 
+      color: 'white',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+      position: 'relative'
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+        <h2 style={{ margin: '0', color: '#27ae60' }}>🌱 Ma Serre Connectée</h2>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button 
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            style={{ 
+              display: 'block',
+              padding: '8px', 
+              backgroundColor: 'transparent', 
+              color: 'white', 
+              border: '1px solid #fff', 
+              borderRadius: '4px', 
+              cursor: 'pointer',
+              fontSize: '16px'
+            }}
+          >
+            ☰
+          </button>
+          
+          <button 
+            onClick={handleLogout}
+            style={{ 
+              padding: '8px 16px', 
+              backgroundColor: '#e74c3c', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '4px', 
+              cursor: 'pointer',
+              fontSize: '14px'
+            }}
+          >
+            🚪 Déconnexion
+          </button>
+        </div>
+      </div>
+      
+      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        <button onClick={() => handleNavigation('dashboard')} style={getNavButtonStyle('dashboard')}>
+          📊 Dashboard
+        </button>
+        <button onClick={() => handleNavigation('greenhouse')} style={getNavButtonStyle('greenhouse')}>
+          🌱 Gestion de ma serre
+        </button>
+        <button onClick={() => handleNavigation('humidity')} style={getNavButtonStyle('humidity')}>
+          💧 Humidité
+        </button>
+        <button onClick={() => handleNavigation('temperature')} style={getNavButtonStyle('temperature')}>
+          🌡️ Température
+        </button>
+        <button onClick={() => handleNavigation('light')} style={getNavButtonStyle('light')}>
+          ☀️ Luminosité
+        </button>
+        <button onClick={() => handleNavigation('profile')} style={getNavButtonStyle('profile')}>
+          👤 Profil
+        </button>
+      </div>
+
+      {showMobileMenu && (
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          right: '20px',
+          backgroundColor: '#34495e',
+          borderRadius: '8px',
+          padding: '15px',
+          boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+          zIndex: 1000,
+          minWidth: '200px'
+        }}>
+          <div style={{ marginBottom: '10px', fontSize: '14px', color: '#27ae60', fontWeight: 'bold' }}>
+            ● Connecté
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <button 
+              onClick={() => { handleNavigation('dashboard'); setShowMobileMenu(false); }}
+              style={{ 
+                padding: '10px', 
+                backgroundColor: currentPage === 'dashboard' ? '#27ae60' : 'transparent',
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '4px', 
+                cursor: 'pointer',
+                textAlign: 'left'
+              }}
+            >
+              📊 Dashboard
+            </button>
+            <button 
+              onClick={() => { handleNavigation('greenhouse'); setShowMobileMenu(false); }}
+              style={{ 
+                padding: '10px', 
+                backgroundColor: currentPage === 'greenhouse' ? '#27ae60' : 'transparent',
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '4px', 
+                cursor: 'pointer',
+                textAlign: 'left'
+              }}
+            >
+              🌱 Gestion de ma serre
+            </button>
+            <hr style={{ margin: '10px 0', border: '1px solid #555' }} />
+            <button 
+              onClick={() => { handleLogout(); setShowMobileMenu(false); }}
+              style={{ 
+                padding: '10px', 
+                backgroundColor: '#e74c3c',
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '4px', 
+                cursor: 'pointer',
+                textAlign: 'left'
+              }}
+            >
+              🚪 Déconnexion
+            </button>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+};
+
+// Composant de layout protégé
+const ProtectedLayout = ({ children, isLoggedIn }) => {
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -6,11 +167,15 @@ function App() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [draggedPlant, setDraggedPlant] = useState(null);
   const [selectedPlant, setSelectedPlant] = useState(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
-  // État de la grille de la serre (10x4 = 40 cases, disposition verticale)
+  // État de la grille de la serre
   const [greenhouseGrid, setGreenhouseGrid] = useState(
     Array.from({ length: 40 }, (_, index) => {
-      // Quelques plants par défaut
       if (index < 8) return { name: 'Tomate', emoji: '🍅' };
       if (index >= 8 && index < 12) return { name: 'Salade', emoji: '🥬' };
       return null;
@@ -167,108 +332,107 @@ function App() {
   );
 
   // PAGE D'ACCUEIL (avant connexion)
-  const renderWelcomePage = () => (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      minHeight: '80vh',
-      textAlign: 'center',
-      padding: '40px'
-    }}>
+  const WelcomePage = () => {
+    const navigate = useNavigate();
+
+    return (
       <div style={{ 
-        backgroundColor: 'white', 
-        padding: '60px 40px', 
-        borderRadius: '15px', 
-        boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-        maxWidth: '500px'
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        minHeight: '80vh',
+        textAlign: 'center',
+        padding: '40px'
       }}>
-        <h1 style={{ 
-          fontSize: '3em', 
-          margin: '0 0 20px 0', 
-          color: '#27ae60' 
-        }}>
-          🌱 Ma Serre Connectée
-        </h1>
-        
-        <p style={{ 
-          fontSize: '1.2em', 
-          color: '#666', 
-          margin: '0 0 30px 0',
-          lineHeight: '1.6'
-        }}>
-          Surveillez et contrôlez votre serre intelligente en temps réel
-        </p>
-
         <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', 
-          gap: '20px', 
-          margin: '30px 0'
+          backgroundColor: 'white', 
+          padding: '60px 40px', 
+          borderRadius: '15px', 
+          boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+          maxWidth: '500px'
         }}>
-          <div style={{ padding: '15px', backgroundColor: '#e3f2fd', borderRadius: '8px' }}>
-            <div style={{ fontSize: '2em', marginBottom: '5px' }}>🌡️</div>
-            <p style={{ margin: '0', fontSize: '0.9em', color: '#1976d2' }}>Température</p>
-          </div>
-          <div style={{ padding: '15px', backgroundColor: '#e8f5e8', borderRadius: '8px' }}>
-            <div style={{ fontSize: '2em', marginBottom: '5px' }}>💧</div>
-            <p style={{ margin: '0', fontSize: '0.9em', color: '#388e3c' }}>Humidité</p>
-          </div>
-          <div style={{ padding: '15px', backgroundColor: '#fff3e0', borderRadius: '8px' }}>
-            <div style={{ fontSize: '2em', marginBottom: '5px' }}>☀️</div>
-            <p style={{ margin: '0', fontSize: '0.9em', color: '#f57c00' }}>Luminosité</p>
-          </div>
-        </div>
+          <h1 style={{ 
+            fontSize: '3em', 
+            margin: '0 0 20px 0', 
+            color: '#27ae60' 
+          }}>
+            🌱 Ma Serre Connectée
+          </h1>
+          
+          <p style={{ 
+            fontSize: '1.2em', 
+            color: '#666', 
+            margin: '0 0 30px 0',
+            lineHeight: '1.6'
+          }}>
+            Surveillez et contrôlez votre serre intelligente en temps réel
+          </p>
 
-        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <button 
-            onClick={() => setCurrentPage('login')}
-            style={{ 
-              padding: '15px 40px', 
-              fontSize: '1.1em',
-              backgroundColor: '#27ae60', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '8px', 
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              transition: 'all 0.3s ease'
-            }}
-          >
-            🔐 Se connecter
-          </button>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', 
+            gap: '20px', 
+            margin: '30px 0'
+          }}>
+            <div style={{ padding: '15px', backgroundColor: '#e3f2fd', borderRadius: '8px' }}>
+              <div style={{ fontSize: '2em', marginBottom: '5px' }}>🌡️</div>
+              <p style={{ margin: '0', fontSize: '0.9em', color: '#1976d2' }}>Température</p>
+            </div>
+            <div style={{ padding: '15px', backgroundColor: '#e8f5e8', borderRadius: '8px' }}>
+              <div style={{ fontSize: '2em', marginBottom: '5px' }}>💧</div>
+              <p style={{ margin: '0', fontSize: '0.9em', color: '#388e3c' }}>Humidité</p>
+            </div>
+            <div style={{ padding: '15px', backgroundColor: '#fff3e0', borderRadius: '8px' }}>
+              <div style={{ fontSize: '2em', marginBottom: '5px' }}>☀️</div>
+              <p style={{ margin: '0', fontSize: '0.9em', color: '#f57c00' }}>Luminosité</p>
+            </div>
+          </div>
 
-          <button 
-            onClick={() => setCurrentPage('register')}
-            style={{ 
-              padding: '15px 40px', 
-              fontSize: '1.1em',
-              backgroundColor: '#3498db', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '8px', 
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              transition: 'all 0.3s ease'
-            }}
-          >
-            📝 S'inscrire
-          </button>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button 
+              onClick={() => navigate('/login')}
+              style={{ 
+                padding: '15px 40px', 
+                fontSize: '1.1em',
+                backgroundColor: '#27ae60', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '8px', 
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              🔐 Se connecter
+            </button>
+
+            <button 
+              onClick={() => navigate('/register')}
+              style={{ 
+                padding: '15px 40px', 
+                fontSize: '1.1em',
+                backgroundColor: '#3498db', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '8px', 
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              📝 S'inscrire
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
-
-  // États pour la page de connexion et inscription
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+    );
+  };
 
   // PAGE DE CONNEXION
-  const renderLoginPage = () => {
+  const LoginPage = () => {
+    const navigate = useNavigate();
+
     const handleSubmit = (e) => {
       e.preventDefault();
       setError('');
@@ -377,7 +541,7 @@ function App() {
           
           <div style={{ textAlign: 'center', marginTop: '20px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
             <button 
-              onClick={() => setCurrentPage('forgot-password')}
+              onClick={() => navigate('/forgot-password')}
               style={{ 
                 background: 'none', 
                 border: 'none', 
@@ -393,7 +557,7 @@ function App() {
 
           <div style={{ textAlign: 'center', marginTop: '20px' }}>
             <button 
-              onClick={() => setCurrentPage('register')}
+              onClick={() => navigate('/register')}
               style={{ 
                 background: 'none', 
                 border: '1px solid #2196f3', 
@@ -411,7 +575,7 @@ function App() {
 
           <div style={{ textAlign: 'center', marginTop: '20px' }}>
             <button 
-              onClick={() => setCurrentPage('home')}
+              onClick={() => navigate('/')}
               style={{ 
                 background: 'none', 
                 border: 'none', 
@@ -429,7 +593,14 @@ function App() {
   };
 
   // PAGE D'INSCRIPTION
-  const renderRegisterPage = () => {
+  const RegisterPage = () => {
+    const navigate = useNavigate();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [fullName, setFullName] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+
     const handleRegisterSubmit = (e) => {
       e.preventDefault();
       setError('');
@@ -450,7 +621,7 @@ function App() {
       }
 
       setIsLoggedIn(true);
-      setCurrentPage('dashboard');
+      navigate('/dashboard');
     };
 
     return (
@@ -584,7 +755,7 @@ function App() {
           
           <div style={{ textAlign: 'center', marginTop: '20px' }}>
             <button 
-              onClick={() => setCurrentPage('login')}
+              onClick={() => navigate('/login')}
               style={{ 
                 background: 'none', 
                 border: '1px solid #27ae60', 
@@ -602,7 +773,7 @@ function App() {
 
           <div style={{ textAlign: 'center', marginTop: '10px' }}>
             <button 
-              onClick={() => setCurrentPage('home')}
+              onClick={() => navigate('/')}
               style={{ 
                 background: 'none', 
                 border: 'none', 
@@ -620,85 +791,104 @@ function App() {
   };
 
   // PAGE MOT DE PASSE OUBLIÉ
-  const renderForgotPasswordPage = () => (
-    <div style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      minHeight: '80vh',
-      padding: '20px'
-    }}>
-      <div style={{ 
-        backgroundColor: 'white', 
-        padding: '40px', 
-        borderRadius: '15px', 
-        boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-        width: '100%',
-        maxWidth: '400px'
-      }}>
-        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-          <h1 style={{ color: '#2196f3', margin: '0 0 10px 0' }}>🔑 Récupération</h1>
-          <p style={{ color: '#666', margin: '0' }}>Réinitialiser votre mot de passe</p>
-        </div>
+  const ForgotPasswordPage = () => {
+    const navigate = useNavigate();
 
-        <p style={{ color: '#666', marginBottom: '20px', fontSize: '14px' }}>
-          Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
-        </p>
-        
-        <form style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div>
-            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', color: '#333' }}>
-              Email
-            </label>
-            <input 
-              type="email" 
-              placeholder="votre.email@exemple.com"
-              style={{ 
-                width: '100%', 
-                padding: '12px', 
-                border: '1px solid #ddd', 
-                borderRadius: '4px',
-                fontSize: '16px'
-              }} 
-            />
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '80vh',
+        padding: '20px'
+      }}>
+        <div style={{ 
+          backgroundColor: 'white', 
+          padding: '40px', 
+          borderRadius: '15px', 
+          boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+          width: '100%',
+          maxWidth: '400px'
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+            <h1 style={{ color: '#2196f3', margin: '0 0 10px 0' }}>🔑 Récupération</h1>
+            <p style={{ color: '#666', margin: '0' }}>Réinitialiser votre mot de passe</p>
           </div>
+
+          <p style={{ color: '#666', marginBottom: '20px', fontSize: '14px' }}>
+            Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
+          </p>
           
-          <button 
-            type="submit" 
-            style={{ 
-              width: '100%',
-              padding: '12px', 
-              backgroundColor: '#2196f3', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '4px', 
-              fontSize: '16px',
-              cursor: 'pointer',
-              fontWeight: 'bold'
-            }}
-          >
-            Envoyer le lien
-          </button>
-        </form>
-        
-        <div style={{ textAlign: 'center', marginTop: '20px' }}>
-          <button 
-            onClick={() => setCurrentPage('login')}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              color: '#2196f3', 
-              textDecoration: 'underline', 
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            ← Retour à la connexion
-          </button>
+          <form style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div>
+              <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', color: '#333' }}>
+                Email
+              </label>
+              <input 
+                type="email" 
+                placeholder="votre.email@exemple.com"
+                style={{ 
+                  width: '100%', 
+                  padding: '12px', 
+                  border: '1px solid #ddd', 
+                  borderRadius: '4px',
+                  fontSize: '16px'
+                }} 
+              />
+            </div>
+            
+            <button 
+              type="submit" 
+              style={{ 
+                width: '100%',
+                padding: '12px', 
+                backgroundColor: '#2196f3', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '4px', 
+                fontSize: '16px',
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
+            >
+              Envoyer le lien
+            </button>
+          </form>
+          
+          <div style={{ textAlign: 'center', marginTop: '20px' }}>
+            <button 
+              onClick={() => navigate('/login')}
+              style={{ 
+                background: 'none', 
+                border: 'none', 
+                color: '#2196f3', 
+                textDecoration: 'underline', 
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              ← Retour à la connexion
+            </button>
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: '10px' }}>
+            <button 
+              onClick={() => navigate('/')}
+              style={{ 
+                background: 'none', 
+                border: 'none', 
+                color: '#666', 
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              ← Retour à l'accueil
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // PAGES PROTÉGÉES (après connexion uniquement)
   const renderProtectedPage = () => {
@@ -1149,205 +1339,103 @@ function App() {
     }
   };
 
-  // Fonction pour déterminer si un onglet est actif
-  const getNavButtonStyle = (page) => ({
-    padding: '10px 15px',
-    backgroundColor: currentPage === page ? '#27ae60' : 'rgba(255,255,255,0.1)',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: currentPage === page ? 'bold' : 'normal'
-  });
-
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif' }}>
-      {/* Header simple pour les pages publiques */}
-      {!isLoggedIn && (
-        <header style={{ 
-          backgroundColor: '#2c3e50', 
-          color: 'white', 
-          padding: '20px',
-          textAlign: 'center'
-        }}>
-          <h1 style={{ margin: '0', color: '#27ae60' }}>🌱 Ma Serre Connectée</h1>
-          <p style={{ margin: '10px 0 0 0', opacity: '0.8' }}>Système de surveillance intelligent</p>
-        </header>
-      )}
-
-      {/* Navigation complète pour les utilisateurs connectés */}
-      {isLoggedIn && (
-        <nav style={{ 
-          padding: '20px', 
-          backgroundColor: '#2c3e50', 
-          color: 'white',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          position: 'relative'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-            <h2 style={{ margin: '0', color: '#27ae60' }}>🌱 Ma Serre Connectée</h2>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              {/* Menu burger pour mobile */}
-              <button 
-                onClick={() => setShowMobileMenu(!showMobileMenu)}
-                style={{ 
-                  display: 'block',
-                  padding: '8px', 
-                  backgroundColor: 'transparent', 
-                  color: 'white', 
-                  border: '1px solid #fff', 
-                  borderRadius: '4px', 
-                  cursor: 'pointer',
-                  fontSize: '16px'
-                }}
-              >
-                ☰
-              </button>
-              
-              <button 
-                onClick={handleLogout}
-                style={{ 
-                  padding: '8px 16px', 
-                  backgroundColor: '#e74c3c', 
-                  color: 'white', 
-                  border: 'none', 
-                  borderRadius: '4px', 
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
-              >
-                🚪 Déconnexion
-              </button>
-            </div>
-          </div>
-          
-          {/* Menu desktop toujours visible */}
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            <button onClick={() => setCurrentPage('dashboard')} style={getNavButtonStyle('dashboard')}>
-              📊 Dashboard
-            </button>
-            <button onClick={() => setCurrentPage('greenhouse')} style={getNavButtonStyle('greenhouse')}>
-              🌱 Gestion de ma serre
-            </button>
-            <button onClick={() => setCurrentPage('humidity')} style={getNavButtonStyle('humidity')}>
-              💧 Humidité
-            </button>
-            <button onClick={() => setCurrentPage('temperature')} style={getNavButtonStyle('temperature')}>
-              🌡️ Température
-            </button>
-            <button onClick={() => setCurrentPage('light')} style={getNavButtonStyle('light')}>
-              ☀️ Luminosité
-            </button>
-            <button onClick={() => setCurrentPage('profile')} style={getNavButtonStyle('profile')}>
-              👤 Profil
-            </button>
-          </div>
-
-          {/* Menu mobile déroulant */}
-          {showMobileMenu && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              right: '20px',
-              backgroundColor: '#34495e',
-              borderRadius: '8px',
-              padding: '15px',
-              boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-              zIndex: 1000,
-              minWidth: '200px'
-            }}>
-              <div style={{ marginBottom: '10px', fontSize: '14px', color: '#27ae60', fontWeight: 'bold' }}>
-                ● Connecté
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <button 
-                  onClick={() => { setCurrentPage('dashboard'); setShowMobileMenu(false); }}
-                  style={{ 
-                    padding: '10px', 
-                    backgroundColor: currentPage === 'dashboard' ? '#27ae60' : 'transparent',
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '4px', 
-                    cursor: 'pointer',
-                    textAlign: 'left'
-                  }}
-                >
-                  📊 Dashboard
-                </button>
-                <button 
-                  onClick={() => { setCurrentPage('greenhouse'); setShowMobileMenu(false); }}
-                  style={{ 
-                    padding: '10px', 
-                    backgroundColor: currentPage === 'greenhouse' ? '#27ae60' : 'transparent',
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '4px', 
-                    cursor: 'pointer',
-                    textAlign: 'left'
-                  }}
-                >
-                  🌱 Gestion de ma serre
-                </button>
-                <hr style={{ margin: '10px 0', border: '1px solid #555' }} />
-                <button 
-                  onClick={() => { handleLogout(); setShowMobileMenu(false); }}
-                  style={{ 
-                    padding: '10px', 
-                    backgroundColor: '#e74c3c',
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '4px', 
-                    cursor: 'pointer',
-                    textAlign: 'left'
-                  }}
-                >
-                  🚪 Déconnexion
-                </button>
-              </div>
-            </div>
-          )}
-        </nav>
-      )}
-
-      {/* Contenu principal */}
-      <main 
-        style={{ 
-          padding: isLoggedIn ? '30px' : '0', 
-          minHeight: '80vh', 
-          backgroundColor: '#ecf0f1'
-        }}
-        onClick={() => setShowMobileMenu(false)}
-      >
-        {!isLoggedIn ? (
-          // Pages publiques (avant connexion)
-          currentPage === 'home' ? renderWelcomePage() :
-          currentPage === 'login' ? renderLoginPage() :
-          currentPage === 'register' ? renderRegisterPage() :
-          currentPage === 'forgot-password' ? renderForgotPasswordPage() :
-          renderWelcomePage()
-        ) : (
-          // Pages protégées (après connexion)
-          renderProtectedPage()
+    <Router>
+      <div style={{ fontFamily: 'Arial, sans-serif' }}>
+        {/* Header simple pour les pages publiques */}
+        {!isLoggedIn && (
+          <header style={{ 
+            backgroundColor: '#2c3e50', 
+            color: 'white', 
+            padding: '20px',
+            textAlign: 'center'
+          }}>
+            <h1 style={{ margin: '0', color: '#27ae60' }}>🌱 Ma Serre Connectée</h1>
+            <p style={{ margin: '10px 0 0 0', opacity: '0.8' }}>Système de surveillance intelligent</p>
+          </header>
         )}
-      </main>
 
-      {/* Footer */}
-      <footer style={{ 
-        backgroundColor: '#34495e', 
-        color: 'white', 
-        textAlign: 'center', 
-        padding: '20px'
-      }}>
-        <p style={{ margin: '0' }}>© 2025 Ma Serre Connectée - Système IoT</p>
+        {/* Navigation pour les utilisateurs connectés */}
         {isLoggedIn && (
-          <p style={{ margin: '5px 0 0 0', fontSize: '12px', opacity: '0.7' }}>
-            Connecté | Page: {currentPage}
-          </p>
+          <Navigation 
+            isLoggedIn={isLoggedIn}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+            handleLogout={handleLogout}
+            showMobileMenu={showMobileMenu}
+            setShowMobileMenu={setShowMobileMenu}
+          />
         )}
-      </footer>
-    </div>
+
+        {/* Contenu principal avec routes */}
+        <main 
+          style={{ 
+            padding: isLoggedIn ? '30px' : '0', 
+            minHeight: '80vh', 
+            backgroundColor: '#ecf0f1'
+          }}
+          onClick={() => setShowMobileMenu(false)}
+        >
+          <Routes>
+            {/* Routes publiques */}
+            <Route path="/" element={!isLoggedIn ? <WelcomePage /> : <Navigate to="/dashboard" replace />} />
+            <Route path="/login" element={!isLoggedIn ? <LoginPage /> : <Navigate to="/dashboard" replace />} />
+            <Route path="/register" element={!isLoggedIn ? <RegisterPage /> : <Navigate to="/dashboard" replace />} />
+            <Route path="/forgot-password" element={!isLoggedIn ? <ForgotPasswordPage /> : <Navigate to="/dashboard" replace />} />
+
+            {/* Routes protégées */}
+            <Route path="/dashboard" element={
+              <ProtectedLayout isLoggedIn={isLoggedIn}>
+                {renderProtectedPage()}
+              </ProtectedLayout>
+            } />
+            <Route path="/greenhouse" element={
+              <ProtectedLayout isLoggedIn={isLoggedIn}>
+                {renderProtectedPage()}
+              </ProtectedLayout>
+            } />
+            <Route path="/humidity" element={
+              <ProtectedLayout isLoggedIn={isLoggedIn}>
+                {renderProtectedPage()}
+              </ProtectedLayout>
+            } />
+            <Route path="/temperature" element={
+              <ProtectedLayout isLoggedIn={isLoggedIn}>
+                {renderProtectedPage()}
+              </ProtectedLayout>
+            } />
+            <Route path="/light" element={
+              <ProtectedLayout isLoggedIn={isLoggedIn}>
+                {renderProtectedPage()}
+              </ProtectedLayout>
+            } />
+            <Route path="/profile" element={
+              <ProtectedLayout isLoggedIn={isLoggedIn}>
+                {renderProtectedPage()}
+              </ProtectedLayout>
+            } />
+
+            {/* Route par défaut */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+
+        {/* Footer */}
+        <footer style={{ 
+          backgroundColor: '#34495e', 
+          color: 'white', 
+          textAlign: 'center', 
+          padding: '20px'
+        }}>
+          <p style={{ margin: '0' }}>© 2025 Ma Serre Connectée - Système IoT</p>
+          {isLoggedIn && (
+            <p style={{ margin: '5px 0 0 0', fontSize: '12px', opacity: '0.7' }}>
+              Connecté | Page: {currentPage}
+            </p>
+          )}
+        </footer>
+      </div>
+    </Router>
   );
 }
 

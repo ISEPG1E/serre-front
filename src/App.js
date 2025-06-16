@@ -1,5 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import authService from './services/authService';
+import Login from './components/Login';
+import ProtectedRoute from './components/ProtectedRoute';
+import temperatureService from './services/temperatureService';
+import humidityService from './services/humidityService';
+import lightService from './services/lightService';
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
+import vegetableService from './services/vegetableService';
+
+// Enregistrer les composants Chart.js nécessaires
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 // Composant de navigation
 const Navigation = ({ isLoggedIn, currentPage, setCurrentPage, handleLogout, showMobileMenu, setShowMobileMenu }) => {
@@ -169,9 +198,25 @@ function App() {
   const [selectedPlant, setSelectedPlant] = useState(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
   const [fullName, setFullName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [temperatureData, setTemperatureData] = useState([]);
+  const [latestTemperature, setLatestTemperature] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [humidityData, setHumidityData] = useState([]);
+  const [latestHumidity, setLatestHumidity] = useState(null);
+  const [isHumidityLoading, setIsHumidityLoading] = useState(false);
+  const [humidityError, setHumidityError] = useState(null);
+  const [lightData, setLightData] = useState([]);
+  const [latestLight, setLatestLight] = useState(null);
+  const [isLightLoading, setIsLightLoading] = useState(false);
+  const [lightError, setLightError] = useState(null);
+  const [vegetables, setVegetables] = useState([]);
+  const [newVegetable, setNewVegetable] = useState({ name: '', emoji: '', duration: '', average_water_consumption: '' });
+  const [vegError, setVegError] = useState('');
+  const [vegSuccess, setVegSuccess] = useState('');
+  const [isVegLoading, setIsVegLoading] = useState(false);
 
   // État de la grille de la serre
   const [greenhouseGrid, setGreenhouseGrid] = useState(
@@ -194,6 +239,14 @@ function App() {
     { name: 'Concombre', emoji: '🥒', duration: '2-3 mois' }
   ];
 
+  useEffect(() => {
+    // Vérifier si l'utilisateur est déjà connecté au chargement
+    const token = authService.getToken();
+    if (token) {
+      setIsLoggedIn(true);
+    }
+  }, []);
+
   // Fonction de connexion
   const handleLogin = (email, password) => {
     if (email && password) {
@@ -206,9 +259,9 @@ function App() {
 
   // Fonction de déconnexion
   const handleLogout = () => {
+    authService.logout();
     setIsLoggedIn(false);
     setCurrentPage('home');
-    setShowMobileMenu(false);
   };
 
   // Fonctions de drag and drop
@@ -336,96 +389,103 @@ function App() {
     const navigate = useNavigate();
 
     return (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        minHeight: '80vh',
-        textAlign: 'center',
-        padding: '40px'
-      }}>
-        <div style={{ 
-          backgroundColor: 'white', 
-          padding: '60px 40px', 
-          borderRadius: '15px', 
-          boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-          maxWidth: '500px'
+      <>
+        <header style={{ 
+          backgroundColor: '#2c3e50', 
+          color: 'white', 
+          padding: '20px',
+          textAlign: 'center'
         }}>
-          <h1 style={{ 
-            fontSize: '3em', 
-            margin: '0 0 20px 0', 
-            color: '#27ae60' 
-          }}>
-            🌱 Ma Serre Connectée
-          </h1>
-          
-          <p style={{ 
-            fontSize: '1.2em', 
-            color: '#666', 
-            margin: '0 0 30px 0',
-            lineHeight: '1.6'
-          }}>
-            Surveillez et contrôlez votre serre intelligente en temps réel
-          </p>
-
+          <h1 style={{ margin: '0', color: '#27ae60' }}>🌱 Ma Serre Connectée</h1>
+          <p style={{ margin: '10px 0 0 0', opacity: '0.8' }}>Système de surveillance intelligent</p>
+        </header>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          minHeight: '80vh',
+          textAlign: 'center',
+          padding: '40px'
+        }}>
           <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', 
-            gap: '20px', 
-            margin: '30px 0'
+            backgroundColor: 'white', 
+            padding: '60px 40px', 
+            borderRadius: '15px', 
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+            maxWidth: '500px'
           }}>
-            <div style={{ padding: '15px', backgroundColor: '#e3f2fd', borderRadius: '8px' }}>
-              <div style={{ fontSize: '2em', marginBottom: '5px' }}>🌡️</div>
-              <p style={{ margin: '0', fontSize: '0.9em', color: '#1976d2' }}>Température</p>
+            <h1 style={{ 
+              fontSize: '3em', 
+              margin: '0 0 20px 0', 
+              color: '#27ae60' 
+            }}>
+              🌱 Ma Serre Connectée
+            </h1>
+            <p style={{ 
+              fontSize: '1.2em', 
+              color: '#666', 
+              margin: '0 0 30px 0',
+              lineHeight: '1.6'
+            }}>
+              Surveillez et contrôlez votre serre intelligente en temps réel
+            </p>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', 
+              gap: '20px', 
+              margin: '30px 0'
+            }}>
+              <div style={{ padding: '15px', backgroundColor: '#e3f2fd', borderRadius: '8px' }}>
+                <div style={{ fontSize: '2em', marginBottom: '5px' }}>🌡️</div>
+                <p style={{ margin: '0', fontSize: '0.9em', color: '#1976d2' }}>Température</p>
+              </div>
+              <div style={{ padding: '15px', backgroundColor: '#e8f5e8', borderRadius: '8px' }}>
+                <div style={{ fontSize: '2em', marginBottom: '5px' }}>💧</div>
+                <p style={{ margin: '0', fontSize: '0.9em', color: '#388e3c' }}>Humidité</p>
+              </div>
+              <div style={{ padding: '15px', backgroundColor: '#fff3e0', borderRadius: '8px' }}>
+                <div style={{ fontSize: '2em', marginBottom: '5px' }}>☀️</div>
+                <p style={{ margin: '0', fontSize: '0.9em', color: '#f57c00' }}>Luminosité</p>
+              </div>
             </div>
-            <div style={{ padding: '15px', backgroundColor: '#e8f5e8', borderRadius: '8px' }}>
-              <div style={{ fontSize: '2em', marginBottom: '5px' }}>💧</div>
-              <p style={{ margin: '0', fontSize: '0.9em', color: '#388e3c' }}>Humidité</p>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button 
+                onClick={() => navigate('/login')}
+                style={{ 
+                  padding: '15px 40px', 
+                  fontSize: '1.1em',
+                  backgroundColor: '#27ae60', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '8px', 
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                🔐 Se connecter
+              </button>
+              <button 
+                onClick={() => navigate('/register')}
+                style={{ 
+                  padding: '15px 40px', 
+                  fontSize: '1.1em',
+                  backgroundColor: '#3498db', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '8px', 
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                📝 S'inscrire
+              </button>
             </div>
-            <div style={{ padding: '15px', backgroundColor: '#fff3e0', borderRadius: '8px' }}>
-              <div style={{ fontSize: '2em', marginBottom: '5px' }}>☀️</div>
-              <p style={{ margin: '0', fontSize: '0.9em', color: '#f57c00' }}>Luminosité</p>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button 
-              onClick={() => navigate('/login')}
-              style={{ 
-                padding: '15px 40px', 
-                fontSize: '1.1em',
-                backgroundColor: '#27ae60', 
-                color: 'white', 
-                border: 'none', 
-                borderRadius: '8px', 
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              🔐 Se connecter
-            </button>
-
-            <button 
-              onClick={() => navigate('/register')}
-              style={{ 
-                padding: '15px 40px', 
-                fontSize: '1.1em',
-                backgroundColor: '#3498db', 
-                color: 'white', 
-                border: 'none', 
-                borderRadius: '8px', 
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              📝 S'inscrire
-            </button>
           </div>
         </div>
-      </div>
+      </>
     );
   };
 
@@ -890,471 +950,1010 @@ function App() {
     );
   };
 
+  // Fonction pour charger les données de température
+  const loadTemperatureData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const [allData, latestData] = await Promise.all([
+        temperatureService.getAllTemperatures(),
+        temperatureService.getLatestTemperature()
+      ]);
+      
+      if (allData.success) {
+        setTemperatureData(allData.data);
+      }
+      if (latestData.success) {
+        setLatestTemperature(latestData.data);
+      }
+    } catch (err) {
+      setError('Erreur lors du chargement des données de température');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Charger les données au montage du composant et toutes les 30 secondes
+  useEffect(() => {
+    loadTemperatureData();
+    const interval = setInterval(loadTemperatureData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Fonction pour charger les données d'humidité
+  const loadHumidityData = async () => {
+    setIsHumidityLoading(true);
+    setHumidityError(null);
+    try {
+      const [allData, latestData] = await Promise.all([
+        humidityService.getAllHumidity(),
+        humidityService.getLatestHumidity()
+      ]);
+      
+      if (allData.success) {
+        setHumidityData(allData.data);
+      }
+      if (latestData.success) {
+        setLatestHumidity(latestData.data);
+      }
+    } catch (err) {
+      setHumidityError('Erreur lors du chargement des données d\'humidité');
+      console.error(err);
+    } finally {
+      setIsHumidityLoading(false);
+    }
+  };
+
+  // Charger les données d'humidité au montage du composant et toutes les 30 secondes
+  useEffect(() => {
+    loadHumidityData();
+    const interval = setInterval(loadHumidityData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Fonction pour charger les données de luminosité
+  const loadLightData = async () => {
+    setIsLightLoading(true);
+    setLightError(null);
+    try {
+      const [allData, latestData] = await Promise.all([
+        lightService.getAllLight(),
+        lightService.getLatestLight()
+      ]);
+      
+      if (allData.success) {
+        setLightData(allData.data);
+      }
+      if (latestData.success) {
+        setLatestLight(latestData.data);
+      }
+    } catch (err) {
+      setLightError('Erreur lors du chargement des données de luminosité');
+      console.error(err);
+    } finally {
+      setIsLightLoading(false);
+    }
+  };
+
+  // Charger les données de luminosité au montage du composant et toutes les 30 secondes
+  useEffect(() => {
+    loadLightData();
+    const interval = setInterval(loadLightData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Fonction pour charger les légumes
+  const loadVegetables = async () => {
+    setIsVegLoading(true);
+    const res = await vegetableService.getAllVegetables();
+    if (res.success) setVegetables(res.data);
+    setIsVegLoading(false);
+  };
+
+  // Charger les légumes au montage
+  useEffect(() => {
+    loadVegetables();
+  }, []);
+
+  // Gérer l'ajout d'un légume
+  const handleAddVegetable = async (e) => {
+    e.preventDefault();
+    setVegError(''); setVegSuccess('');
+    if (!newVegetable.name || !newVegetable.emoji || !newVegetable.duration || !newVegetable.average_water_consumption) {
+      setVegError('Tous les champs sont obligatoires');
+      return;
+    }
+    const res = await vegetableService.addVegetable(newVegetable);
+    if (res.success) {
+      setVegSuccess('Légume ajouté !');
+      setNewVegetable({ name: '', emoji: '', duration: '', average_water_consumption: '' });
+      // Recharger la liste
+      loadVegetables();
+    } else {
+      setVegError(res.error || "Erreur lors de l'ajout");
+    }
+  };
+
+  // Fonction composant pour rendre la page de la serre
+  const GreenhousePage = () => {
+    const [vegetables, setVegetables] = useState([]);
+    const [newVegetable, setNewVegetable] = useState({ name: '', emoji: '', duration: '', average_water_consumption: '' });
+    const [vegError, setVegError] = useState('');
+    const [vegSuccess, setVegSuccess] = useState('');
+    const [isVegLoading, setIsVegLoading] = useState(false);
+
+    // Charger les légumes au montage
+    useEffect(() => {
+      const fetchVegetables = async () => {
+        setIsVegLoading(true);
+        const res = await vegetableService.getAllVegetables();
+        if (res.success) setVegetables(res.data);
+        setIsVegLoading(false);
+      };
+      fetchVegetables();
+    }, []);
+
+    // Gérer l'ajout d'un légume
+    const handleAddVegetable = async (e) => {
+      e.preventDefault();
+      setVegError(''); setVegSuccess('');
+      if (!newVegetable.name || !newVegetable.emoji || !newVegetable.duration || !newVegetable.average_water_consumption) {
+        setVegError('Tous les champs sont obligatoires');
+        return;
+      }
+      const res = await vegetableService.addVegetable(newVegetable);
+      if (res.success) {
+        setVegSuccess('Légume ajouté !');
+        setNewVegetable({ name: '', emoji: '', duration: '', average_water_consumption: '' });
+        // Recharger la liste
+        const reload = await vegetableService.getAllVegetables();
+        if (reload.success) setVegetables(reload.data);
+      } else {
+        setVegError(res.error || "Erreur lors de l'ajout");
+      }
+    };
+
+    return (
+      <div style={{ padding: '20px' }}>
+        <h2>🌱 Gestion de ma serre</h2>
+        <div style={{ marginBottom: '30px', background: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+          <h3>Ajouter un légume</h3>
+          <form onSubmit={handleAddVegetable} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <input type="text" placeholder="Nom" value={newVegetable.name} onChange={e => setNewVegetable({ ...newVegetable, name: e.target.value })} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
+            <input type="text" placeholder="Emoji" value={newVegetable.emoji} onChange={e => setNewVegetable({ ...newVegetable, emoji: e.target.value })} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '60px' }} />
+            <input type="text" placeholder="Durée (ex: 2-3 mois)" value={newVegetable.duration} onChange={e => setNewVegetable({ ...newVegetable, duration: e.target.value })} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
+            <input type="number" step="0.1" placeholder="Conso eau (L/j)" value={newVegetable.average_water_consumption} onChange={e => setNewVegetable({ ...newVegetable, average_water_consumption: e.target.value })} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '120px' }} />
+            <button type="submit" style={{ padding: '8px 16px', background: '#27ae60', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Ajouter</button>
+          </form>
+          {vegError && <div style={{ color: 'red', marginTop: '8px' }}>{vegError}</div>}
+          {vegSuccess && <div style={{ color: 'green', marginTop: '8px' }}>{vegSuccess}</div>}
+        </div>
+        <div style={{ marginBottom: '30px', background: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+          <h3>Légumes disponibles</h3>
+          {isVegLoading ? <p>Chargement...</p> : (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+              {vegetables.map(veg => (
+                <div key={veg.id} style={{ border: '1px solid #eee', borderRadius: '8px', padding: '12px', minWidth: '120px', background: '#f8f9fa', textAlign: 'center' }}>
+                  <div style={{ fontSize: '2em' }}>{veg.emoji}</div>
+                  <div style={{ fontWeight: 'bold' }}>{veg.name}</div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>{veg.duration}</div>
+                  <div style={{ fontSize: '12px', color: '#888' }}>💧 {veg.average_water_consumption} L/j</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          {/* Grille de la serre */}
+          <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', flex: '1', minWidth: '400px' }}>
+            <h3>Disposition de votre serre (10x4 cases)</h3>
+            <p style={{ color: '#666', marginBottom: '20px' }}>
+              Drag & Drop ou cliquez avec une plante sélectionnée pour planter. Cliquez sur une case plantée pour la vider.
+            </p>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(4, 1fr)', 
+              gap: '4px', 
+              maxWidth: '400px',
+              margin: '0 auto',
+              padding: '20px',
+              backgroundColor: '#8B4513',
+              borderRadius: '8px'
+            }}>
+              {greenhouseGrid.map((cell, index) => (
+                <div 
+                  key={index} 
+                  onClick={() => handleGridCellClick(index)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, index)}
+                  style={{
+                    width: '60px',
+                    height: '60px',
+                    backgroundColor: cell ? '#27ae60' : '#8FBC8F',
+                    border: '2px solid #556B2F',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '24px',
+                    transition: 'all 0.3s ease',
+                    position: 'relative'
+                  }}
+                  onMouseOver={(e) => {
+                    if (!cell) e.target.style.backgroundColor = '#98FB98';
+                  }}
+                  onMouseOut={(e) => {
+                    if (!cell) e.target.style.backgroundColor = '#8FBC8F';
+                  }}
+                >
+                  {cell && (
+                    <div
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, cell, true, index)}
+                      style={{ cursor: 'move' }}
+                    >
+                      {cell.emoji}
+                    </div>
+                  )}
+                  {!cell && (
+                    <div style={{ 
+                      fontSize: '14px', 
+                      color: '#556B2F', 
+                      fontWeight: 'bold' 
+                    }}>
+                      +
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: '20px', display: 'flex', gap: '20px', justifyContent: 'center', fontSize: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <div style={{ width: '20px', height: '20px', backgroundColor: '#27ae60', borderRadius: '4px' }}></div>
+                <span>Case plantée</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <div style={{ width: '20px', height: '20px', backgroundColor: '#8FBC8F', borderRadius: '4px' }}></div>
+                <span>Case vide</span>
+              </div>
+            </div>
+            {/* Statistiques */}
+            <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+              <h4>📊 Statistiques de la serre</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '15px' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#27ae60' }}>
+                    {greenhouseGrid.filter(cell => cell).length}/40
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>Cases occupées</div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#3498db' }}>
+                    {Math.round((greenhouseGrid.filter(cell => cell).length / 40) * 100)}%
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>Taux d'occupation</div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#e74c3c' }}>
+                    {40 - greenhouseGrid.filter(cell => cell).length}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>Cases libres</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* Sélection des plantes */}
+          <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', width: '280px', flexShrink: 0 }}>
+            <h3>🌱 Plantes disponibles</h3>
+            <p style={{ color: '#666', marginBottom: '15px', fontSize: '14px' }}>
+              Glissez-déposez ou cliquez pour sélectionner
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {availablePlants.map((plant, index) => (
+                <div 
+                  key={index} 
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, plant)}
+                  onClick={() => setSelectedPlant(selectedPlant?.name === plant.name ? null : plant)}
+                  style={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px', 
+                    border: `2px solid ${selectedPlant?.name === plant.name ? '#27ae60' : '#e0e0e0'}`, 
+                    borderRadius: '8px', 
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    backgroundColor: selectedPlant?.name === plant.name ? '#e8f5e8' : 'white'
+                  }}
+                  onMouseOver={(e) => {
+                    if (selectedPlant?.name !== plant.name) {
+                      e.currentTarget.style.backgroundColor = '#f8f9fa';
+                    }
+                  }}
+                  onMouseOut={(e) => {
+                    if (selectedPlant?.name !== plant.name) {
+                      e.currentTarget.style.backgroundColor = 'white';
+                    }
+                  }}
+                >
+                  <div style={{ fontSize: '32px', flexShrink: 0 }}>{plant.emoji}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '2px' }}>{plant.name}</div>
+                    <div style={{ fontSize: '11px', color: '#666' }}>{plant.duration}</div>
+                  </div>
+                  {selectedPlant?.name === plant.name && (
+                    <div style={{ color: '#27ae60', fontSize: '16px' }}>✓</div>
+                  )}
+                </div>
+              ))}
+            </div>
+            {selectedPlant && (
+              <div style={{ 
+                marginTop: '15px',
+                padding: '12px', 
+                backgroundColor: '#e8f5e8', 
+                borderRadius: '6px', 
+                textAlign: 'center',
+                border: '1px solid #27ae60',
+                fontSize: '14px'
+              }}>
+                <strong>{selectedPlant.emoji} {selectedPlant.name}</strong><br />
+                <span style={{ color: '#666' }}>Cliquez sur une case pour planter</span>
+              </div>
+            )}
+            <div style={{ 
+              marginTop: '20px', 
+              padding: '12px', 
+              backgroundColor: '#f8f9fa', 
+              borderRadius: '6px',
+              fontSize: '12px',
+              color: '#666'
+            }}>
+              <strong>💡 Instructions :</strong><br />
+              • Glissez-déposez dans la serre<br />
+              • Ou cliquez puis cliquez sur une case<br />
+              • Cliquez sur une plante pour la retirer
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Modifier le rendu du dashboard
+  const renderDashboard = () => {
+        return (
+      <div style={{ padding: '20px' }}>
+        <h2>📊 Tableau de bord</h2>
+        
+        {/* Cartes des dernières mesures */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+          gap: '20px',
+          marginBottom: '30px'
+        }}>
+          {/* Carte de température */}
+          <div style={{ 
+            backgroundColor: 'white', 
+            padding: '20px', 
+            borderRadius: '8px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          }}>
+            <h3 style={{ color: '#1976d2', marginBottom: '15px' }}>🌡️ Température</h3>
+            {latestTemperature ? (
+              <>
+                <p style={{ fontSize: '32px', fontWeight: 'bold', margin: '0' }}>
+                  {latestTemperature.val}°C
+                </p>
+                <p style={{ color: '#666', fontSize: '14px', margin: '5px 0 0 0' }}>
+                  Dernière mise à jour : {new Date(latestTemperature.created_at).toLocaleString()}
+                </p>
+              </>
+            ) : (
+              <p>Chargement...</p>
+            )}
+              </div>
+
+          {/* Carte d'humidité */}
+          <div style={{ 
+            backgroundColor: 'white', 
+            padding: '20px', 
+            borderRadius: '8px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          }}>
+            <h3 style={{ color: '#2196f3', marginBottom: '15px' }}>💧 Humidité</h3>
+            {latestHumidity ? (
+              <>
+                <p style={{ fontSize: '32px', fontWeight: 'bold', margin: '0' }}>
+                  {latestHumidity.val}%
+                </p>
+                <p style={{ color: '#666', fontSize: '14px', margin: '5px 0 0 0' }}>
+                  Dernière mise à jour : {new Date(latestHumidity.created_at).toLocaleString()}
+                </p>
+              </>
+            ) : (
+              <p>Chargement...</p>
+            )}
+              </div>
+
+          {/* Carte de luminosité */}
+          <div style={{ 
+            backgroundColor: 'white', 
+            padding: '20px', 
+            borderRadius: '8px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          }}>
+            <h3 style={{ color: '#ffc107', marginBottom: '15px' }}>☀️ Luminosité</h3>
+            {latestLight ? (
+              <>
+                <p style={{ fontSize: '32px', fontWeight: 'bold', margin: '0' }}>
+                  {latestLight.val} lux
+                </p>
+                <p style={{ color: '#666', fontSize: '14px', margin: '5px 0 0 0' }}>
+                  Dernière mise à jour : {new Date(latestLight.created_at).toLocaleString()}
+                </p>
+              </>
+            ) : (
+              <p>Chargement...</p>
+            )}
+              </div>
+              </div>
+
+        {/* Graphiques des dernières 24h */}
+        <div style={{ 
+          backgroundColor: 'white', 
+          padding: '20px', 
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          marginBottom: '30px'
+        }}>
+          <h3>Évolution sur 24h</h3>
+          <div style={{ height: '400px' }}>
+            <Line 
+              data={{
+                labels: temperatureData.map(measure => 
+                  new Date(measure.created_at).toLocaleTimeString()
+                ),
+                datasets: [
+                  {
+                    label: 'Température (°C)',
+                    data: temperatureData.map(measure => measure.val),
+                    borderColor: '#1976d2',
+                    backgroundColor: 'rgba(25, 118, 210, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                  },
+                  {
+                    label: 'Humidité (%)',
+                    data: humidityData.map(measure => measure.val),
+                    borderColor: '#2196f3',
+                    backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                  },
+                  {
+                    label: 'Luminosité (lux)',
+                    data: lightData.map(measure => measure.val),
+                    borderColor: '#ffc107',
+                    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                  }
+                ]
+              }}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: {
+                    position: 'top',
+                  },
+                  title: {
+                    display: true,
+                    text: 'Évolution des mesures sur 24h'
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: false,
+                    title: {
+                      display: true,
+                      text: 'Valeur'
+                    }
+                  },
+                  x: {
+                    title: {
+                      display: true,
+                      text: 'Heure'
+                    }
+                  }
+                }
+              }}
+            />
+              </div>
+            </div>
+
+        {/* État de la serre */}
+        <div style={{ 
+          backgroundColor: 'white', 
+          padding: '20px', 
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          <h3>État de la serre</h3>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+            gap: '15px',
+            marginTop: '15px'
+          }}>
+            <div style={{
+              padding: '15px',
+              backgroundColor: '#f8f9fa',
+              borderRadius: '4px',
+              border: '1px solid #dee2e6'
+            }}>
+              <h4 style={{ margin: '0 0 10px 0' }}>🌱 Plantes</h4>
+              <p style={{ margin: '0' }}>{greenhouseGrid.filter(cell => cell !== null).length} plantes en culture</p>
+                </div>
+            <div style={{
+              padding: '15px',
+              backgroundColor: '#f8f9fa',
+              borderRadius: '4px',
+              border: '1px solid #dee2e6'
+            }}>
+              <h4 style={{ margin: '0 0 10px 0' }}>📅 Prochaine récolte</h4>
+              <p style={{ margin: '0' }}>Dans 2 semaines</p>
+                </div>
+            <div style={{
+              padding: '15px',
+              backgroundColor: '#f8f9fa',
+              borderRadius: '4px',
+              border: '1px solid #dee2e6'
+            }}>
+              <h4 style={{ margin: '0 0 10px 0' }}>💧 Prochain arrosage</h4>
+              <p style={{ margin: '0' }}>Dans 3 heures</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+  };
+
   // PAGES PROTÉGÉES (après connexion uniquement)
   const renderProtectedPage = () => {
     switch(currentPage) {
       case 'dashboard':
-        return (
-          <div>
-            <h1>📊 Dashboard Serre Connectée</h1>
-            
-            {/* Métriques principales avec plus de données */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '15px', margin: '20px 0' }}>
-              <div style={{ padding: '20px', backgroundColor: '#87CEEB', borderRadius: '8px', textAlign: 'center', color: 'white' }}>
-                <h4 style={{ margin: '0 0 5px 0' }}>🌡️ Température</h4>
-                <p style={{ fontSize: '24px', margin: '5px 0', fontWeight: 'bold' }}>22.7°C</p>
-                <p style={{ fontSize: '11px', margin: '0' }}>Actuelle</p>
-              </div>
-              <div style={{ padding: '20px', backgroundColor: '#90EE90', borderRadius: '8px', textAlign: 'center', color: 'white' }}>
-                <h4 style={{ margin: '0 0 5px 0' }}>💧 Humidité</h4>
-                <p style={{ fontSize: '24px', margin: '5px 0', fontWeight: 'bold' }}>59.7%</p>
-                <p style={{ fontSize: '11px', margin: '0' }}>Actuelle</p>
-              </div>
-              <div style={{ padding: '20px', backgroundColor: '#FFA07A', borderRadius: '8px', textAlign: 'center', color: 'white' }}>
-                <h4 style={{ margin: '0 0 5px 0' }}>☀️ Luminosité</h4>
-                <p style={{ fontSize: '24px', margin: '5px 0', fontWeight: 'bold' }}>250 lux</p>
-                <p style={{ fontSize: '11px', margin: '0' }}>Actuelle</p>
-              </div>
-              <div style={{ padding: '20px', backgroundColor: '#00CED1', borderRadius: '8px', textAlign: 'center', color: 'white' }}>
-                <h4 style={{ margin: '0 0 5px 0' }}>🌡️ Moy. Temp. 24h</h4>
-                <p style={{ fontSize: '24px', margin: '5px 0', fontWeight: 'bold' }}>20.3°C</p>
-                <p style={{ fontSize: '11px', margin: '0' }}>Moyenne</p>
-              </div>
-              <div style={{ padding: '20px', backgroundColor: '#98FB98', borderRadius: '8px', textAlign: 'center', color: 'white' }}>
-                <h4 style={{ margin: '0 0 5px 0' }}>💧 Moy. Hum. 24h</h4>
-                <p style={{ fontSize: '24px', margin: '5px 0', fontWeight: 'bold' }}>66.4%</p>
-                <p style={{ fontSize: '11px', margin: '0' }}>Moyenne</p>
-              </div>
-              <div style={{ padding: '20px', backgroundColor: '#F4A460', borderRadius: '8px', textAlign: 'center', color: 'white' }}>
-                <h4 style={{ margin: '0 0 5px 0' }}>☀️ Moy. Lum. Jour</h4>
-                <p style={{ fontSize: '24px', margin: '5px 0', fontWeight: 'bold' }}>373 lux</p>
-                <p style={{ fontSize: '11px', margin: '0' }}>Moyenne</p>
-              </div>
-            </div>
-
-            {/* Évolution des Capteurs avec graphique simulé */}
-            <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-              <h3>Évolution des Capteurs</h3>
-              
-              {/* Légende */}
-              <div style={{ display: 'flex', gap: '20px', marginBottom: '15px', fontSize: '14px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <div style={{ width: '20px', height: '3px', backgroundColor: '#87CEEB' }}></div>
-                  <span>Température (°C)</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <div style={{ width: '20px', height: '3px', backgroundColor: '#90EE90' }}></div>
-                  <span>Humidité (%)</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <div style={{ width: '20px', height: '3px', backgroundColor: '#FFA07A' }}></div>
-                  <span>Luminosité (lux/10)</span>
-                </div>
-              </div>
-
-              {/* Graphique simulé */}
-              <div style={{ position: 'relative', height: '250px', backgroundColor: '#f8f9fa', borderRadius: '4px', border: '1px solid #e0e0e0' }}>
-                {/* Lignes de fond */}
-                {[20, 40, 60, 80, 100].map(y => (
-                  <div key={y} style={{
-                    position: 'absolute',
-                    left: '0',
-                    right: '0',
-                    top: `${100 - y}%`,
-                    height: '1px',
-                    backgroundColor: '#e0e0e0'
-                  }}></div>
-                ))}
-                
-                {/* Axe Y */}
-                <div style={{ position: 'absolute', left: '10px', top: '10px', fontSize: '12px', color: '#666' }}>100</div>
-                <div style={{ position: 'absolute', left: '10px', top: '50%', fontSize: '12px', color: '#666' }}>50</div>
-                <div style={{ position: 'absolute', left: '10px', bottom: '10px', fontSize: '12px', color: '#666' }}>0</div>
-                
-                {/* Courbe température (simulation) */}
-                <svg style={{ position: 'absolute', width: '100%', height: '100%' }}>
-                  <polyline
-                    points="50,180 120,175 190,170 260,172 330,168 400,165 470,162"
-                    fill="none"
-                    stroke="#87CEEB"
-                    strokeWidth="3"
-                  />
-                  <polyline
-                    points="50,100 120,95 190,85 260,90 330,80 400,75 470,70"
-                    fill="none"
-                    stroke="#90EE90"
-                    strokeWidth="3"
-                  />
-                  <polyline
-                    points="50,130 120,120 190,110 260,115 330,105 400,100 470,95"
-                    fill="none"
-                    stroke="#FFA07A"
-                    strokeWidth="3"
-                  />
-                </svg>
-                
-                {/* Axe X */}
-                <div style={{ position: 'absolute', bottom: '5px', left: '10%', fontSize: '11px', color: '#666' }}>10:39:37</div>
-                <div style={{ position: 'absolute', bottom: '5px', left: '30%', fontSize: '11px', color: '#666' }}>10:39:47</div>
-                <div style={{ position: 'absolute', bottom: '5px', left: '50%', fontSize: '11px', color: '#666' }}>10:39:57</div>
-                <div style={{ position: 'absolute', bottom: '5px', left: '70%', fontSize: '11px', color: '#666' }}>10:40:07</div>
-                <div style={{ position: 'absolute', bottom: '5px', left: '90%', fontSize: '11px', color: '#666' }}>10:40:17</div>
-              </div>
-            </div>
-
-            {/* Actions rapides */}
-            <div style={{ marginTop: '20px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              <button 
-                onClick={() => setCurrentPage('temperature')}
-                style={{ padding: '10px 20px', backgroundColor: '#1976d2', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-              >
-                📊 Température
-              </button>
-              <button 
-                onClick={() => setCurrentPage('humidity')}
-                style={{ padding: '10px 20px', backgroundColor: '#388e3c', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-              >
-                📊 Humidité
-              </button>
-              <button 
-                onClick={() => setCurrentPage('light')}
-                style={{ padding: '10px 20px', backgroundColor: '#f57c00', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-              >
-                📊 Luminosité
-              </button>
-              <button 
-                onClick={() => setCurrentPage('greenhouse')}
-                style={{ padding: '10px 20px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-              >
-                🌱 Gestion serre
-              </button>
-            </div>
-          </div>
-        );
-
+        return renderDashboard();
       case 'greenhouse':
-        return (
-          <div>
-            <h1>🌱 Gestion de ma serre</h1>
-            
-            {/* Layout principal avec serre à gauche et sélection à droite */}
-            <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-              
-              {/* Disposition de la serre 10x4 */}
-              <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', flex: '1', minWidth: '400px' }}>
-                <h3>Disposition de votre serre (10x4 cases)</h3>
-                <p style={{ color: '#666', marginBottom: '20px' }}>
-                  Drag & Drop ou cliquez avec une plante sélectionnée pour planter. Cliquez sur une case plantée pour la vider.
-                </p>
-                
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(4, 1fr)', 
-                  gap: '4px', 
-                  maxWidth: '400px',
-                  margin: '0 auto',
-                  padding: '20px',
-                  backgroundColor: '#8B4513',
-                  borderRadius: '8px'
-                }}>
-                  {greenhouseGrid.map((cell, index) => (
-                    <div 
-                      key={index} 
-                      onClick={() => handleGridCellClick(index)}
-                      onDragOver={handleDragOver}
-                      onDrop={(e) => handleDrop(e, index)}
-                      style={{
-                        width: '60px',
-                        height: '60px',
-                        backgroundColor: cell ? '#27ae60' : '#8FBC8F',
-                        border: '2px solid #556B2F',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '24px',
-                        transition: 'all 0.3s ease',
-                        position: 'relative'
-                      }}
-                      onMouseOver={(e) => {
-                        if (!cell) e.target.style.backgroundColor = '#98FB98';
-                      }}
-                      onMouseOut={(e) => {
-                        if (!cell) e.target.style.backgroundColor = '#8FBC8F';
-                      }}
-                    >
-                      {cell && (
-                        <div
-                          draggable
-                          onDragStart={(e) => handleDragStart(e, cell, true, index)}
-                          style={{ cursor: 'move' }}
-                        >
-                          {cell.emoji}
-                        </div>
-                      )}
-                      {!cell && (
-                        <div style={{ 
-                          fontSize: '14px', 
-                          color: '#556B2F', 
-                          fontWeight: 'bold' 
-                        }}>
-                          +
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                
-                <div style={{ marginTop: '20px', display: 'flex', gap: '20px', justifyContent: 'center', fontSize: '14px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <div style={{ width: '20px', height: '20px', backgroundColor: '#27ae60', borderRadius: '4px' }}></div>
-                    <span>Case plantée</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <div style={{ width: '20px', height: '20px', backgroundColor: '#8FBC8F', borderRadius: '4px' }}></div>
-                    <span>Case vide</span>
-                  </div>
-                </div>
-
-                {/* Statistiques */}
-                <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
-                  <h4>📊 Statistiques de la serre</h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '15px' }}>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#27ae60' }}>
-                        {greenhouseGrid.filter(cell => cell).length}/40
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#666' }}>Cases occupées</div>
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#3498db' }}>
-                        {Math.round((greenhouseGrid.filter(cell => cell).length / 40) * 100)}%
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#666' }}>Taux d'occupation</div>
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#e74c3c' }}>
-                        {40 - greenhouseGrid.filter(cell => cell).length}
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#666' }}>Cases libres</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Sélection des plants - Panel vertical à droite */}
-              <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', width: '280px', flexShrink: 0 }}>
-                <h3>🌱 Plantes disponibles</h3>
-                <p style={{ color: '#666', marginBottom: '15px', fontSize: '14px' }}>
-                  Glissez-déposez ou cliquez pour sélectionner
-                </p>
-                
-                {/* Liste verticale des plantes */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {availablePlants.map((plant, index) => (
-                    <div 
-                      key={index} 
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, plant)}
-                      onClick={() => setSelectedPlant(selectedPlant?.name === plant.name ? null : plant)}
-                      style={{ 
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        padding: '12px', 
-                        border: `2px solid ${selectedPlant?.name === plant.name ? '#27ae60' : '#e0e0e0'}`, 
-                        borderRadius: '8px', 
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        backgroundColor: selectedPlant?.name === plant.name ? '#e8f5e8' : 'white'
-                      }}
-                      onMouseOver={(e) => {
-                        if (selectedPlant?.name !== plant.name) {
-                          e.currentTarget.style.backgroundColor = '#f8f9fa';
-                        }
-                      }}
-                      onMouseOut={(e) => {
-                        if (selectedPlant?.name !== plant.name) {
-                          e.currentTarget.style.backgroundColor = 'white';
-                        }
-                      }}
-                    >
-                      <div style={{ fontSize: '32px', flexShrink: 0 }}>{plant.emoji}</div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '2px' }}>{plant.name}</div>
-                        <div style={{ fontSize: '11px', color: '#666' }}>{plant.duration}</div>
-                      </div>
-                      {selectedPlant?.name === plant.name && (
-                        <div style={{ color: '#27ae60', fontSize: '16px' }}>✓</div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                
-                {selectedPlant && (
-                  <div style={{ 
-                    marginTop: '15px',
-                    padding: '12px', 
-                    backgroundColor: '#e8f5e8', 
-                    borderRadius: '6px', 
-                    textAlign: 'center',
-                    border: '1px solid #27ae60',
-                    fontSize: '14px'
-                  }}>
-                    <strong>{selectedPlant.emoji} {selectedPlant.name}</strong><br />
-                    <span style={{ color: '#666' }}>Cliquez sur une case pour planter</span>
-                  </div>
-                )}
-
-                {/* Instructions d'utilisation */}
-                <div style={{ 
-                  marginTop: '20px', 
-                  padding: '12px', 
-                  backgroundColor: '#f8f9fa', 
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  color: '#666'
-                }}>
-                  <strong>💡 Instructions :</strong><br />
-                  • Glissez-déposez dans la serre<br />
-                  • Ou cliquez puis cliquez sur une case<br />
-                  • Cliquez sur une plante pour la retirer
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
+        return <GreenhousePage />;
       case 'profile':
-        return (
-          <div>
-            <h1>👤 Profil utilisateur</h1>
-            <div style={{ maxWidth: '600px', backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-              <h3>📋 Informations personnelles</h3>
-              <div style={{ display: 'grid', gap: '15px' }}>
-                <div>
-                  <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>Nom complet</label>
-                  <input type="text" defaultValue="Jean Dupont" style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '4px', width: '100%' }} />
-                </div>
-                <div>
-                  <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>Email</label>
-                  <input type="email" defaultValue="jean.dupont@email.com" style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '4px', width: '100%' }} />
-                </div>
-              </div>
-              <button style={{ marginTop: '20px', padding: '12px 24px', backgroundColor: '#4caf50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                💾 Sauvegarder
-              </button>
-            </div>
-          </div>
-        );
-
+        return <ProfilePage />;
       case 'humidity':
-        return (
-          <div>
-            <SensorChart 
-              title="💧 Données d'humidité"
-              data="60,200 120,180 180,160 240,170 300,150 360,140 420,130 480,120"
-              color="#388e3c"
-              unit="%"
-              currentValue="65"
-            />
-          </div>
-        );
-
+        return renderHumidityPage();
       case 'temperature':
-        return (
-          <div>
-            <SensorChart 
-              title="🌡️ Données de température"
-              data="60,180 120,175 180,170 240,172 300,168 360,165 420,162 480,160"
-              color="#1976d2"
-              unit="°C"
-              currentValue="25"
-            />
-          </div>
-        );
-
+        return renderTemperaturePage();
       case 'light':
-        return (
-          <div>
-            <SensorChart 
-              title="☀️ Données de luminosité"
-              data="60,220 120,200 180,120 240,100 300,90 360,95 420,130 480,180"
-              color="#f57c00"
-              unit=" lux"
-              currentValue="250"
-            />
-          </div>
-        );
-
+        return renderLightPage();
       default:
-        return (
-          <div>
-            <h1>📊 Dashboard</h1>
-            <p>Vue d'ensemble de votre serre connectée</p>
-            
-            {/* Métriques principales */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', margin: '20px 0' }}>
-              <div style={{ padding: '20px', backgroundColor: '#e3f2fd', borderRadius: '8px', textAlign: 'center' }}>
-                <h4>🌡️ Température</h4>
-                <p style={{ fontSize: '28px', margin: '10px 0', color: '#1976d2' }}>25°C</p>
-                <p style={{ fontSize: '12px', color: '#666' }}>Optimal</p>
-              </div>
-              <div style={{ padding: '20px', backgroundColor: '#e8f5e8', borderRadius: '8px', textAlign: 'center' }}>
-                <h4>💧 Humidité</h4>
-                <p style={{ fontSize: '28px', margin: '10px 0', color: '#388e3c' }}>65%</p>
-                <p style={{ fontSize: '12px', color: '#666' }}>Parfait</p>
-              </div>
-              <div style={{ padding: '20px', backgroundColor: '#fff3e0', borderRadius: '8px', textAlign: 'center' }}>
-                <h4>☀️ Luminosité</h4>
-                <p style={{ fontSize: '28px', margin: '10px 0', color: '#f57c00' }}>85%</p>
-                <p style={{ fontSize: '12px', color: '#666' }}>Excellent</p>
-              </div>
-            </div>
-
-            {/* Actions rapides */}
-            <div style={{ marginTop: '20px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              <button 
-                onClick={() => setCurrentPage('temperature')}
-                style={{ padding: '10px 20px', backgroundColor: '#1976d2', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-              >
-                📊 Température
-              </button>
-              <button 
-                onClick={() => setCurrentPage('humidity')}
-                style={{ padding: '10px 20px', backgroundColor: '#388e3c', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-              >
-                📊 Humidité
-              </button>
-              <button 
-                onClick={() => setCurrentPage('light')}
-                style={{ padding: '10px 20px', backgroundColor: '#f57c00', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-              >
-                📊 Luminosité
-              </button>
-            </div>
-          </div>
-        );
+        return renderDashboard();
     }
+  };
+
+  // Modifier le rendu de la page température
+  const renderTemperaturePage = () => {
+    if (isLoading) {
+      return <div>Chargement des données...</div>;
+    }
+
+    if (error) {
+      return <div className="error-message">{error}</div>;
+    }
+
+    // Préparer les données pour le graphique
+    const chartData = {
+      labels: temperatureData.map(measure => 
+        new Date(measure.created_at).toLocaleTimeString()
+      ),
+      datasets: [
+        {
+          label: 'Température (°C)',
+          data: temperatureData.map(measure => measure.val),
+          borderColor: '#1976d2',
+          backgroundColor: 'rgba(25, 118, 210, 0.1)',
+          tension: 0.4,
+          fill: true
+        }
+      ]
+    };
+
+    const chartOptions = {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        title: {
+          display: true,
+          text: 'Évolution de la température'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: false,
+          title: {
+            display: true,
+            text: 'Température (°C)'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Heure'
+          }
+        }
+      }
+    };
+
+    return (
+      <div style={{ padding: '20px' }}>
+        <h2>🌡️ Température</h2>
+        
+        {latestTemperature && (
+          <div style={{ 
+            backgroundColor: 'white', 
+            padding: '20px', 
+            borderRadius: '8px', 
+            marginBottom: '20px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          }}>
+            <h3>Dernière mesure</h3>
+            <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
+              {latestTemperature.val}°C
+            </p>
+            <p style={{ color: '#666', fontSize: '14px' }}>
+              Mesuré le {new Date(latestTemperature.created_at).toLocaleString()}
+            </p>
+          </div>
+        )}
+
+        <div style={{ 
+          backgroundColor: 'white', 
+          padding: '20px', 
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          marginBottom: '20px'
+        }}>
+          <h3>Graphique des températures</h3>
+          <div style={{ height: '400px' }}>
+            <Line data={chartData} options={chartOptions} />
+          </div>
+        </div>
+
+        <div style={{ 
+          backgroundColor: 'white', 
+          padding: '20px', 
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          <h3>Historique des mesures</h3>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
+            gap: '15px',
+            marginTop: '15px'
+          }}>
+            {temperatureData.map((measure) => (
+              <div key={measure.id} style={{
+                padding: '15px',
+                backgroundColor: '#f8f9fa',
+                borderRadius: '4px',
+                border: '1px solid #dee2e6'
+              }}>
+                <p style={{ fontSize: '18px', fontWeight: 'bold', margin: '0' }}>
+                  {measure.val}°C
+                </p>
+                <p style={{ color: '#666', fontSize: '12px', margin: '5px 0 0 0' }}>
+                  {new Date(measure.created_at).toLocaleString()}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Ajouter le rendu de la page d'humidité
+  const renderHumidityPage = () => {
+    if (isHumidityLoading) {
+      return <div>Chargement des données...</div>;
+    }
+
+    if (humidityError) {
+      return <div className="error-message">{humidityError}</div>;
+    }
+
+    // Préparer les données pour le graphique
+    const chartData = {
+      labels: humidityData.map(measure => 
+        new Date(measure.created_at).toLocaleTimeString()
+      ),
+      datasets: [
+        {
+          label: 'Humidité (%)',
+          data: humidityData.map(measure => measure.val),
+          borderColor: '#2196f3',
+          backgroundColor: 'rgba(33, 150, 243, 0.1)',
+          tension: 0.4,
+          fill: true
+        }
+      ]
+    };
+
+    const chartOptions = {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        title: {
+          display: true,
+          text: 'Évolution de l\'humidité'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: false,
+          title: {
+            display: true,
+            text: 'Humidité (%)'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Heure'
+          }
+        }
+      }
+    };
+
+    return (
+      <div style={{ padding: '20px' }}>
+        <h2>💧 Humidité</h2>
+        
+        {latestHumidity && (
+          <div style={{ 
+            backgroundColor: 'white', 
+            padding: '20px', 
+            borderRadius: '8px', 
+            marginBottom: '20px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          }}>
+            <h3>Dernière mesure</h3>
+            <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
+              {latestHumidity.val}%
+            </p>
+            <p style={{ color: '#666', fontSize: '14px' }}>
+              Mesuré le {new Date(latestHumidity.created_at).toLocaleString()}
+            </p>
+          </div>
+        )}
+
+        <div style={{ 
+          backgroundColor: 'white', 
+          padding: '20px', 
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          marginBottom: '20px'
+        }}>
+          <h3>Graphique de l'humidité</h3>
+          <div style={{ height: '400px' }}>
+            <Line data={chartData} options={chartOptions} />
+          </div>
+        </div>
+
+        <div style={{ 
+          backgroundColor: 'white', 
+          padding: '20px', 
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          <h3>Historique des mesures</h3>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
+            gap: '15px',
+            marginTop: '15px'
+          }}>
+            {humidityData.map((measure) => (
+              <div key={measure.id} style={{
+                padding: '15px',
+                backgroundColor: '#f8f9fa',
+                borderRadius: '4px',
+                border: '1px solid #dee2e6'
+              }}>
+                <p style={{ fontSize: '18px', fontWeight: 'bold', margin: '0' }}>
+                  {measure.val}%
+                </p>
+                <p style={{ color: '#666', fontSize: '12px', margin: '5px 0 0 0' }}>
+                  {new Date(measure.created_at).toLocaleString()}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Ajouter le rendu de la page de luminosité
+  const renderLightPage = () => {
+    if (isLightLoading) {
+      return <div>Chargement des données...</div>;
+    }
+
+    if (lightError) {
+      return <div className="error-message">{lightError}</div>;
+    }
+
+    // Préparer les données pour le graphique
+    const chartData = {
+      labels: lightData.map(measure => 
+        new Date(measure.created_at).toLocaleTimeString()
+      ),
+      datasets: [
+        {
+          label: 'Luminosité (lux)',
+          data: lightData.map(measure => measure.val),
+          borderColor: '#ffc107',
+          backgroundColor: 'rgba(255, 193, 7, 0.1)',
+          tension: 0.4,
+          fill: true
+        }
+      ]
+    };
+
+    const chartOptions = {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        title: {
+          display: true,
+          text: 'Évolution de la luminosité'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: false,
+          title: {
+            display: true,
+            text: 'Luminosité (lux)'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Heure'
+          }
+        }
+      }
+    };
+
+    return (
+      <div style={{ padding: '20px' }}>
+        <h2>☀️ Luminosité</h2>
+        
+        {latestLight && (
+          <div style={{ 
+            backgroundColor: 'white', 
+            padding: '20px', 
+            borderRadius: '8px', 
+            marginBottom: '20px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          }}>
+            <h3>Dernière mesure</h3>
+            <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
+              {latestLight.val} lux
+            </p>
+            <p style={{ color: '#666', fontSize: '14px' }}>
+              Mesuré le {new Date(latestLight.created_at).toLocaleString()}
+            </p>
+          </div>
+        )}
+
+        <div style={{ 
+          backgroundColor: 'white', 
+          padding: '20px', 
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          marginBottom: '20px'
+        }}>
+          <h3>Graphique de la luminosité</h3>
+          <div style={{ height: '400px' }}>
+            <Line data={chartData} options={chartOptions} />
+          </div>
+        </div>
+
+        <div style={{ 
+          backgroundColor: 'white', 
+          padding: '20px', 
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          <h3>Historique des mesures</h3>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
+            gap: '15px',
+            marginTop: '15px'
+          }}>
+            {lightData.map((measure) => (
+              <div key={measure.id} style={{
+                padding: '15px',
+                backgroundColor: '#f8f9fa',
+                borderRadius: '4px',
+                border: '1px solid #dee2e6'
+              }}>
+                <p style={{ fontSize: '18px', fontWeight: 'bold', margin: '0' }}>
+                  {measure.val} lux
+                </p>
+                <p style={{ color: '#666', fontSize: '12px', margin: '5px 0 0 0' }}>
+                  {new Date(measure.created_at).toLocaleString()}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Composant pour la page de profil utilisateur
+  const ProfilePage = () => {
+    const [fullName, setFullName] = useState('Jean Dupont');
+    const [email, setEmail] = useState('jean.dupont@email.com');
+    const [success, setSuccess] = useState('');
+
+    const handleSave = (e) => {
+      e.preventDefault();
+      setSuccess('Profil mis à jour !');
+      setTimeout(() => setSuccess(''), 2000);
+    };
+
+    return (
+      <div style={{ padding: '20px' }}>
+        <h2>👤 Profil utilisateur</h2>
+        <div style={{ maxWidth: '600px', backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+          <h3>📋 Informations personnelles</h3>
+          <form onSubmit={handleSave} style={{ display: 'grid', gap: '15px' }}>
+            <div>
+              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>Nom complet</label>
+              <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '4px', width: '100%' }} />
+            </div>
+            <div>
+              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>Email</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '4px', width: '100%' }} />
+            </div>
+            <button type="submit" style={{ marginTop: '20px', padding: '12px 24px', backgroundColor: '#4caf50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+              💾 Sauvegarder
+            </button>
+            {success && <div style={{ color: 'green', marginTop: '10px' }}>{success}</div>}
+          </form>
+        </div>
+      </div>
+    );
   };
 
   return (
     <Router>
       <div style={{ fontFamily: 'Arial, sans-serif' }}>
-        {/* Header simple pour les pages publiques */}
-        {!isLoggedIn && (
-          <header style={{ 
-            backgroundColor: '#2c3e50', 
-            color: 'white', 
-            padding: '20px',
-            textAlign: 'center'
-          }}>
-            <h1 style={{ margin: '0', color: '#27ae60' }}>🌱 Ma Serre Connectée</h1>
-            <p style={{ margin: '10px 0 0 0', opacity: '0.8' }}>Système de surveillance intelligent</p>
-          </header>
-        )}
-
         {/* Navigation pour les utilisateurs connectés */}
         {isLoggedIn && (
           <Navigation 
@@ -1378,41 +1977,45 @@ function App() {
         >
           <Routes>
             {/* Routes publiques */}
-            <Route path="/" element={!isLoggedIn ? <WelcomePage /> : <Navigate to="/dashboard" replace />} />
-            <Route path="/login" element={!isLoggedIn ? <LoginPage /> : <Navigate to="/dashboard" replace />} />
+            <Route path="/" element={
+              !isLoggedIn ? <WelcomePage /> : <Navigate to="/dashboard" replace />
+            } />
+            <Route path="/login" element={
+              isLoggedIn ? <Navigate to="/dashboard" replace /> : <Login />
+            } />
             <Route path="/register" element={!isLoggedIn ? <RegisterPage /> : <Navigate to="/dashboard" replace />} />
             <Route path="/forgot-password" element={!isLoggedIn ? <ForgotPasswordPage /> : <Navigate to="/dashboard" replace />} />
 
             {/* Routes protégées */}
             <Route path="/dashboard" element={
-              <ProtectedLayout isLoggedIn={isLoggedIn}>
+              <ProtectedRoute>
                 {renderProtectedPage()}
-              </ProtectedLayout>
+              </ProtectedRoute>
             } />
             <Route path="/greenhouse" element={
-              <ProtectedLayout isLoggedIn={isLoggedIn}>
+              <ProtectedRoute>
                 {renderProtectedPage()}
-              </ProtectedLayout>
+              </ProtectedRoute>
             } />
             <Route path="/humidity" element={
-              <ProtectedLayout isLoggedIn={isLoggedIn}>
+              <ProtectedRoute>
                 {renderProtectedPage()}
-              </ProtectedLayout>
+              </ProtectedRoute>
             } />
             <Route path="/temperature" element={
-              <ProtectedLayout isLoggedIn={isLoggedIn}>
+              <ProtectedRoute>
                 {renderProtectedPage()}
-              </ProtectedLayout>
+              </ProtectedRoute>
             } />
             <Route path="/light" element={
-              <ProtectedLayout isLoggedIn={isLoggedIn}>
+              <ProtectedRoute>
                 {renderProtectedPage()}
-              </ProtectedLayout>
+              </ProtectedRoute>
             } />
             <Route path="/profile" element={
-              <ProtectedLayout isLoggedIn={isLoggedIn}>
+              <ProtectedRoute>
                 {renderProtectedPage()}
-              </ProtectedLayout>
+              </ProtectedRoute>
             } />
 
             {/* Route par défaut */}

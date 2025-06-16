@@ -190,7 +190,7 @@ function App() {
     { name: 'Oignon', emoji: '🧅', duration: '4-6 mois' },
     { name: 'Courgette', emoji: '🥒', duration: '2-3 mois' },
     { name: 'Poivron', emoji: '🫑', duration: '3-4 mois' },
-
+    { name: 'Aubergine', emoji: '🍆', duration: '4-5 mois' },
     { name: 'Concombre', emoji: '🥒', duration: '2-3 mois' }
   ];
 

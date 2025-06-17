@@ -977,8 +977,6 @@ function App() {
   // Charger les données au montage du composant et toutes les 30 secondes
   useEffect(() => {
     loadTemperatureData();
-    const interval = setInterval(loadTemperatureData, 30000);
-    return () => clearInterval(interval);
   }, []);
 
   // Fonction pour charger les données d'humidité
@@ -1008,8 +1006,6 @@ function App() {
   // Charger les données d'humidité au montage du composant et toutes les 30 secondes
   useEffect(() => {
     loadHumidityData();
-    const interval = setInterval(loadHumidityData, 30000);
-    return () => clearInterval(interval);
   }, []);
 
   // Fonction pour charger les données de luminosité
@@ -1039,8 +1035,6 @@ function App() {
   // Charger les données de luminosité au montage du composant et toutes les 30 secondes
   useEffect(() => {
     loadLightData();
-    const interval = setInterval(loadLightData, 30000);
-    return () => clearInterval(interval);
   }, []);
 
   // Fonction pour charger les légumes
@@ -1681,25 +1675,51 @@ function App() {
     }
   };
 
-  // Modifier le rendu de la page température
-  const renderTemperaturePage = () => {
-    if (isLoading) {
-      return <div>Chargement des données...</div>;
-    }
+  const DataTable = ({ data, title, unit, icon }) => {
+    const [currentPage, setCurrentPage] = useState(1);
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const itemsPerPage = 10;
 
-    if (error) {
-      return <div className="error-message">{error}</div>;
-    }
+    // Filtrer les données par date
+    const filteredData = data.filter(measure => {
+      if (!startDate && !endDate) return true;
+      const measureDate = new Date(measure.created_at);
+      const start = startDate ? new Date(startDate) : null;
+      const end = endDate ? new Date(endDate) : null;
+      
+      if (start && end) {
+        return measureDate >= start && measureDate <= end;
+      } else if (start) {
+        return measureDate >= start;
+      } else if (end) {
+        return measureDate <= end;
+      }
+      return true;
+    });
+
+    // Trier les données du plus récent au plus ancien
+    const sortedData = [...filteredData].sort((a, b) => 
+      new Date(b.created_at) - new Date(a.created_at)
+    );
+
+    // Calculer les données pour la page courante
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = sortedData.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+
+    const latestMeasure = data[0];
 
     // Préparer les données pour le graphique
     const chartData = {
-      labels: temperatureData.map(measure => 
+      labels: data.map(measure => 
         new Date(measure.created_at).toLocaleTimeString()
       ),
       datasets: [
         {
-          label: 'Température (°C)',
-          data: temperatureData.map(measure => measure.val),
+          label: `${title} (${unit})`,
+          data: data.map(measure => measure.val),
           borderColor: '#1976d2',
           backgroundColor: 'rgba(25, 118, 210, 0.1)',
           tension: 0.4,
@@ -1716,7 +1736,7 @@ function App() {
         },
         title: {
           display: true,
-          text: 'Évolution de la température'
+          text: `Évolution de ${title.toLowerCase()}`
         }
       },
       scales: {
@@ -1724,7 +1744,7 @@ function App() {
           beginAtZero: false,
           title: {
             display: true,
-            text: 'Température (°C)'
+            text: `${title} (${unit})`
           }
         },
         x: {
@@ -1738,9 +1758,9 @@ function App() {
 
     return (
       <div style={{ padding: '20px' }}>
-        <h2>🌡️ Température</h2>
+        <h2>{icon} {title}</h2>
         
-        {latestTemperature && (
+        {latestMeasure && (
           <div style={{ 
             backgroundColor: 'white', 
             padding: '20px', 
@@ -1750,10 +1770,10 @@ function App() {
           }}>
             <h3>Dernière mesure</h3>
             <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
-              {latestTemperature.val}°C
+              {latestMeasure.val}{unit}
             </p>
             <p style={{ color: '#666', fontSize: '14px' }}>
-              Mesuré le {new Date(latestTemperature.created_at).toLocaleString()}
+              Mesuré le {new Date(latestMeasure.created_at).toLocaleString()}
             </p>
           </div>
         )}
@@ -1765,7 +1785,7 @@ function App() {
           boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
           marginBottom: '20px'
         }}>
-          <h3>Graphique des températures</h3>
+          <h3>Graphique</h3>
           <div style={{ height: '400px' }}>
             <Line data={chartData} options={chartOptions} />
           </div>
@@ -1778,279 +1798,159 @@ function App() {
           boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
         }}>
           <h3>Historique des mesures</h3>
+          
+          {/* Filtres de date */}
           <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
+            marginBottom: '20px',
+            display: 'flex',
             gap: '15px',
-            marginTop: '15px'
+            alignItems: 'center'
           }}>
-            {temperatureData.map((measure) => (
-              <div key={measure.id} style={{
-                padding: '15px',
-                backgroundColor: '#f8f9fa',
+            <div>
+              <label style={{ marginRight: '10px', fontSize: '14px' }}>Du:</label>
+              <input 
+                type="datetime-local" 
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                style={{ 
+                  padding: '8px',
+                  borderRadius: '4px',
+                  border: '1px solid #ddd'
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ marginRight: '10px', fontSize: '14px' }}>Au:</label>
+              <input 
+                type="datetime-local"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                style={{ 
+                  padding: '8px',
+                  borderRadius: '4px',
+                  border: '1px solid #ddd'
+                }}
+              />
+            </div>
+            <button
+              onClick={() => {
+                setStartDate('');
+                setEndDate('');
+                setCurrentPage(1);
+              }}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#f44336',
+                color: 'white',
+                border: 'none',
                 borderRadius: '4px',
-                border: '1px solid #dee2e6'
-              }}>
-                <p style={{ fontSize: '18px', fontWeight: 'bold', margin: '0' }}>
-                  {measure.val}°C
-                </p>
-                <p style={{ color: '#666', fontSize: '12px', margin: '5px 0 0 0' }}>
-                  {new Date(measure.created_at).toLocaleString()}
-                </p>
-              </div>
-            ))}
+                cursor: 'pointer'
+              }}
+            >
+              Réinitialiser
+            </button>
+          </div>
+
+          {/* Tableau des données */}
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ 
+              width: '100%', 
+              borderCollapse: 'collapse',
+              marginBottom: '20px'
+            }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f5f5f5' }}>
+                  <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Date et heure</th>
+                  <th style={{ padding: '12px', textAlign: 'right', borderBottom: '2px solid #ddd' }}>{title} ({unit})</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentItems.map((measure, index) => (
+                  <tr key={index} style={{ 
+                    backgroundColor: index % 2 === 0 ? 'white' : '#f9f9f9'
+                  }}>
+                    <td style={{ padding: '12px', borderBottom: '1px solid #ddd' }}>
+                      {new Date(measure.created_at).toLocaleString()}
+                    </td>
+                    <td style={{ padding: '12px', textAlign: 'right', borderBottom: '1px solid #ddd', fontWeight: 'bold' }}>
+                      {measure.val}{unit}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '10px'
+          }}>
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: currentPage === 1 ? '#ddd' : '#2196f3',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: currentPage === 1 ? 'default' : 'pointer'
+              }}
+            >
+              Précédent
+            </button>
+            <span style={{ fontSize: '14px' }}>
+              Page {currentPage} sur {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: currentPage === totalPages ? '#ddd' : '#2196f3',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: currentPage === totalPages ? 'default' : 'pointer'
+              }}
+            >
+              Suivant
+            </button>
           </div>
         </div>
       </div>
     );
   };
 
-  // Ajouter le rendu de la page d'humidité
+  const renderTemperaturePage = () => {
+    return <DataTable 
+      data={temperatureData}
+      title="Température"
+      unit="°C"
+      icon="🌡️"
+    />;
+  };
+
   const renderHumidityPage = () => {
-    if (isHumidityLoading) {
-      return <div>Chargement des données...</div>;
-    }
-
-    if (humidityError) {
-      return <div className="error-message">{humidityError}</div>;
-    }
-
-    // Préparer les données pour le graphique
-    const chartData = {
-      labels: humidityData.map(measure => 
-        new Date(measure.created_at).toLocaleTimeString()
-      ),
-      datasets: [
-        {
-          label: 'Humidité (%)',
-          data: humidityData.map(measure => measure.val),
-          borderColor: '#2196f3',
-          backgroundColor: 'rgba(33, 150, 243, 0.1)',
-          tension: 0.4,
-          fill: true
-        }
-      ]
-    };
-
-    const chartOptions = {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: 'top',
-        },
-        title: {
-          display: true,
-          text: 'Évolution de l\'humidité'
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: false,
-          title: {
-            display: true,
-            text: 'Humidité (%)'
-          }
-        },
-        x: {
-          title: {
-            display: true,
-            text: 'Heure'
-          }
-        }
-      }
-    };
-
-    return (
-      <div style={{ padding: '20px' }}>
-        <h2>💧 Humidité</h2>
-        
-        {latestHumidity && (
-          <div style={{ 
-            backgroundColor: 'white', 
-            padding: '20px', 
-            borderRadius: '8px', 
-            marginBottom: '20px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-          }}>
-            <h3>Dernière mesure</h3>
-            <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
-              {latestHumidity.val}%
-            </p>
-            <p style={{ color: '#666', fontSize: '14px' }}>
-              Mesuré le {new Date(latestHumidity.created_at).toLocaleString()}
-            </p>
-          </div>
-        )}
-
-        <div style={{ 
-          backgroundColor: 'white', 
-          padding: '20px', 
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          marginBottom: '20px'
-        }}>
-          <h3>Graphique de l'humidité</h3>
-          <div style={{ height: '400px' }}>
-            <Line data={chartData} options={chartOptions} />
-          </div>
-        </div>
-
-        <div style={{ 
-          backgroundColor: 'white', 
-          padding: '20px', 
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}>
-          <h3>Historique des mesures</h3>
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
-            gap: '15px',
-            marginTop: '15px'
-          }}>
-            {humidityData.map((measure) => (
-              <div key={measure.id} style={{
-                padding: '15px',
-                backgroundColor: '#f8f9fa',
-                borderRadius: '4px',
-                border: '1px solid #dee2e6'
-              }}>
-                <p style={{ fontSize: '18px', fontWeight: 'bold', margin: '0' }}>
-                  {measure.val}%
-                </p>
-                <p style={{ color: '#666', fontSize: '12px', margin: '5px 0 0 0' }}>
-                  {new Date(measure.created_at).toLocaleString()}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return <DataTable 
+      data={humidityData}
+      title="Humidité"
+      unit="%"
+      icon="💧"
+    />;
   };
 
   // Ajouter le rendu de la page de luminosité
   const renderLightPage = () => {
-    if (isLightLoading) {
-      return <div>Chargement des données...</div>;
-    }
-
-    if (lightError) {
-      return <div className="error-message">{lightError}</div>;
-    }
-
-    // Préparer les données pour le graphique
-    const chartData = {
-      labels: lightData.map(measure => 
-        new Date(measure.created_at).toLocaleTimeString()
-      ),
-      datasets: [
-        {
-          label: 'Luminosité (lux)',
-          data: lightData.map(measure => measure.val),
-          borderColor: '#ffc107',
-          backgroundColor: 'rgba(255, 193, 7, 0.1)',
-          tension: 0.4,
-          fill: true
-        }
-      ]
-    };
-
-    const chartOptions = {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: 'top',
-        },
-        title: {
-          display: true,
-          text: 'Évolution de la luminosité'
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: false,
-          title: {
-            display: true,
-            text: 'Luminosité (lux)'
-          }
-        },
-        x: {
-          title: {
-            display: true,
-            text: 'Heure'
-          }
-        }
-      }
-    };
-
-    return (
-      <div style={{ padding: '20px' }}>
-        <h2>☀️ Luminosité</h2>
-        
-        {latestLight && (
-          <div style={{ 
-            backgroundColor: 'white', 
-            padding: '20px', 
-            borderRadius: '8px', 
-            marginBottom: '20px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-          }}>
-            <h3>Dernière mesure</h3>
-            <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
-              {latestLight.val} lux
-            </p>
-            <p style={{ color: '#666', fontSize: '14px' }}>
-              Mesuré le {new Date(latestLight.created_at).toLocaleString()}
-            </p>
-          </div>
-        )}
-
-        <div style={{ 
-          backgroundColor: 'white', 
-          padding: '20px', 
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          marginBottom: '20px'
-        }}>
-          <h3>Graphique de la luminosité</h3>
-          <div style={{ height: '400px' }}>
-            <Line data={chartData} options={chartOptions} />
-          </div>
-        </div>
-
-        <div style={{ 
-          backgroundColor: 'white', 
-          padding: '20px', 
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}>
-          <h3>Historique des mesures</h3>
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
-            gap: '15px',
-            marginTop: '15px'
-          }}>
-            {lightData.map((measure) => (
-              <div key={measure.id} style={{
-                padding: '15px',
-                backgroundColor: '#f8f9fa',
-                borderRadius: '4px',
-                border: '1px solid #dee2e6'
-              }}>
-                <p style={{ fontSize: '18px', fontWeight: 'bold', margin: '0' }}>
-                  {measure.val} lux
-                </p>
-                <p style={{ color: '#666', fontSize: '12px', margin: '5px 0 0 0' }}>
-                  {new Date(measure.created_at).toLocaleString()}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return <DataTable 
+      data={lightData}
+      title="Luminosité"
+      unit="lux"
+      icon="☀️"
+    />;
   };
 
   // Composant pour la page de profil utilisateur

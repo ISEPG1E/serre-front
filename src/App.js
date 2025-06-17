@@ -399,92 +399,92 @@ function App() {
           <h1 style={{ margin: '0', color: '#27ae60' }}>🌱 Ma Serre Connectée</h1>
           <p style={{ margin: '10px 0 0 0', opacity: '0.8' }}>Système de surveillance intelligent</p>
         </header>
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        minHeight: '80vh',
+        textAlign: 'center',
+        padding: '40px'
+      }}>
         <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          minHeight: '80vh',
-          textAlign: 'center',
-          padding: '40px'
+          backgroundColor: 'white', 
+          padding: '60px 40px', 
+          borderRadius: '15px', 
+          boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+          maxWidth: '500px'
         }}>
-          <div style={{ 
-            backgroundColor: 'white', 
-            padding: '60px 40px', 
-            borderRadius: '15px', 
-            boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-            maxWidth: '500px'
+          <h1 style={{ 
+            fontSize: '3em', 
+            margin: '0 0 20px 0', 
+            color: '#27ae60' 
           }}>
-            <h1 style={{ 
-              fontSize: '3em', 
-              margin: '0 0 20px 0', 
-              color: '#27ae60' 
-            }}>
-              🌱 Ma Serre Connectée
-            </h1>
-            <p style={{ 
-              fontSize: '1.2em', 
-              color: '#666', 
-              margin: '0 0 30px 0',
-              lineHeight: '1.6'
-            }}>
-              Surveillez et contrôlez votre serre intelligente en temps réel
-            </p>
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', 
-              gap: '20px', 
-              margin: '30px 0'
-            }}>
-              <div style={{ padding: '15px', backgroundColor: '#e3f2fd', borderRadius: '8px' }}>
-                <div style={{ fontSize: '2em', marginBottom: '5px' }}>🌡️</div>
-                <p style={{ margin: '0', fontSize: '0.9em', color: '#1976d2' }}>Température</p>
-              </div>
-              <div style={{ padding: '15px', backgroundColor: '#e8f5e8', borderRadius: '8px' }}>
-                <div style={{ fontSize: '2em', marginBottom: '5px' }}>💧</div>
-                <p style={{ margin: '0', fontSize: '0.9em', color: '#388e3c' }}>Humidité</p>
-              </div>
-              <div style={{ padding: '15px', backgroundColor: '#fff3e0', borderRadius: '8px' }}>
-                <div style={{ fontSize: '2em', marginBottom: '5px' }}>☀️</div>
-                <p style={{ margin: '0', fontSize: '0.9em', color: '#f57c00' }}>Luminosité</p>
-              </div>
+            🌱 Ma Serre Connectée
+          </h1>
+          <p style={{ 
+            fontSize: '1.2em', 
+            color: '#666', 
+            margin: '0 0 30px 0',
+            lineHeight: '1.6'
+          }}>
+            Surveillez et contrôlez votre serre intelligente en temps réel
+          </p>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', 
+            gap: '20px', 
+            margin: '30px 0'
+          }}>
+            <div style={{ padding: '15px', backgroundColor: '#e3f2fd', borderRadius: '8px' }}>
+              <div style={{ fontSize: '2em', marginBottom: '5px' }}>🌡️</div>
+              <p style={{ margin: '0', fontSize: '0.9em', color: '#1976d2' }}>Température</p>
             </div>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button 
-                onClick={() => navigate('/login')}
-                style={{ 
-                  padding: '15px 40px', 
-                  fontSize: '1.1em',
-                  backgroundColor: '#27ae60', 
-                  color: 'white', 
-                  border: 'none', 
-                  borderRadius: '8px', 
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  transition: 'all 0.3s ease'
-                }}
-              >
-                🔐 Se connecter
-              </button>
-              <button 
-                onClick={() => navigate('/register')}
-                style={{ 
-                  padding: '15px 40px', 
-                  fontSize: '1.1em',
-                  backgroundColor: '#3498db', 
-                  color: 'white', 
-                  border: 'none', 
-                  borderRadius: '8px', 
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  transition: 'all 0.3s ease'
-                }}
-              >
-                📝 S'inscrire
-              </button>
+            <div style={{ padding: '15px', backgroundColor: '#e8f5e8', borderRadius: '8px' }}>
+              <div style={{ fontSize: '2em', marginBottom: '5px' }}>💧</div>
+              <p style={{ margin: '0', fontSize: '0.9em', color: '#388e3c' }}>Humidité</p>
+            </div>
+            <div style={{ padding: '15px', backgroundColor: '#fff3e0', borderRadius: '8px' }}>
+              <div style={{ fontSize: '2em', marginBottom: '5px' }}>☀️</div>
+              <p style={{ margin: '0', fontSize: '0.9em', color: '#f57c00' }}>Luminosité</p>
             </div>
           </div>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button 
+              onClick={() => navigate('/login')}
+              style={{ 
+                padding: '15px 40px', 
+                fontSize: '1.1em',
+                backgroundColor: '#27ae60', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '8px', 
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              🔐 Se connecter
+            </button>
+            <button 
+              onClick={() => navigate('/register')}
+              style={{ 
+                padding: '15px 40px', 
+                fontSize: '1.1em',
+                backgroundColor: '#3498db', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '8px', 
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              📝 S'inscrire
+            </button>
+          </div>
         </div>
+      </div>
       </>
     );
   };
@@ -1078,10 +1078,24 @@ function App() {
   // Fonction composant pour rendre la page de la serre
   const GreenhousePage = () => {
     const [vegetables, setVegetables] = useState([]);
-    const [newVegetable, setNewVegetable] = useState({ name: '', emoji: '', duration: '', average_water_consumption: '' });
+    // Initialiser l'état avec les valeurs du localStorage s'il y en a
+    const [newVegetable, setNewVegetable] = useState(() => {
+      const saved = localStorage.getItem('vegetableFormState');
+      return saved ? JSON.parse(saved) : { 
+        name: '', 
+        emoji: '', 
+        duration: '', 
+        average_water_consumption: '' 
+      };
+    });
     const [vegError, setVegError] = useState('');
     const [vegSuccess, setVegSuccess] = useState('');
     const [isVegLoading, setIsVegLoading] = useState(false);
+
+    // Sauvegarder dans le localStorage à chaque modification du formulaire
+    useEffect(() => {
+      localStorage.setItem('vegetableFormState', JSON.stringify(newVegetable));
+    }, [newVegetable]);
 
     // Charger les légumes au montage
     useEffect(() => {
@@ -1097,7 +1111,8 @@ function App() {
     // Gérer l'ajout d'un légume
     const handleAddVegetable = async (e) => {
       e.preventDefault();
-      setVegError(''); setVegSuccess('');
+      setVegError(''); 
+      setVegSuccess('');
       if (!newVegetable.name || !newVegetable.emoji || !newVegetable.duration || !newVegetable.average_water_consumption) {
         setVegError('Tous les champs sont obligatoires');
         return;
@@ -1105,7 +1120,10 @@ function App() {
       const res = await vegetableService.addVegetable(newVegetable);
       if (res.success) {
         setVegSuccess('Légume ajouté !');
-        setNewVegetable({ name: '', emoji: '', duration: '', average_water_consumption: '' });
+        // Réinitialiser le formulaire et le localStorage
+        const emptyState = { name: '', emoji: '', duration: '', average_water_consumption: '' };
+        setNewVegetable(emptyState);
+        localStorage.setItem('vegetableFormState', JSON.stringify(emptyState));
         // Recharger la liste
         const reload = await vegetableService.getAllVegetables();
         if (reload.success) setVegetables(reload.data);
@@ -1114,16 +1132,48 @@ function App() {
       }
     };
 
+    // Gérer les changements de champs
+    const handleFieldChange = (field, value) => {
+      const updatedVegetable = { ...newVegetable, [field]: value };
+      setNewVegetable(updatedVegetable);
+      localStorage.setItem('vegetableFormState', JSON.stringify(updatedVegetable));
+    };
+
     return (
       <div style={{ padding: '20px' }}>
         <h2>🌱 Gestion de ma serre</h2>
         <div style={{ marginBottom: '30px', background: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
           <h3>Ajouter un légume</h3>
           <form onSubmit={handleAddVegetable} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <input type="text" placeholder="Nom" value={newVegetable.name} onChange={e => setNewVegetable({ ...newVegetable, name: e.target.value })} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
-            <input type="text" placeholder="Emoji" value={newVegetable.emoji} onChange={e => setNewVegetable({ ...newVegetable, emoji: e.target.value })} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '60px' }} />
-            <input type="text" placeholder="Durée (ex: 2-3 mois)" value={newVegetable.duration} onChange={e => setNewVegetable({ ...newVegetable, duration: e.target.value })} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
-            <input type="number" step="0.1" placeholder="Conso eau (L/j)" value={newVegetable.average_water_consumption} onChange={e => setNewVegetable({ ...newVegetable, average_water_consumption: e.target.value })} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '120px' }} />
+            <input 
+              type="text" 
+              placeholder="Nom" 
+              value={newVegetable.name} 
+              onChange={e => handleFieldChange('name', e.target.value)} 
+              style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} 
+            />
+            <input 
+              type="text" 
+              placeholder="Emoji" 
+              value={newVegetable.emoji} 
+              onChange={e => handleFieldChange('emoji', e.target.value)} 
+              style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '60px' }} 
+            />
+            <input 
+              type="text" 
+              placeholder="Durée (ex: 2-3 mois)" 
+              value={newVegetable.duration} 
+              onChange={e => handleFieldChange('duration', e.target.value)} 
+              style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} 
+            />
+            <input 
+              type="number" 
+              step="0.1" 
+              placeholder="Conso eau (L/j)" 
+              value={newVegetable.average_water_consumption} 
+              onChange={e => handleFieldChange('average_water_consumption', e.target.value)} 
+              style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '120px' }} 
+            />
             <button type="submit" style={{ padding: '8px 16px', background: '#27ae60', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Ajouter</button>
           </form>
           {vegError && <div style={{ color: 'red', marginTop: '8px' }}>{vegError}</div>}
@@ -1139,188 +1189,188 @@ function App() {
                   <div style={{ fontWeight: 'bold' }}>{veg.name}</div>
                   <div style={{ fontSize: '12px', color: '#666' }}>{veg.duration}</div>
                   <div style={{ fontSize: '12px', color: '#888' }}>💧 {veg.average_water_consumption} L/j</div>
-                </div>
+            </div>
               ))}
             </div>
           )}
-        </div>
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          </div>
+            <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
           {/* Grille de la serre */}
-          <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', flex: '1', minWidth: '400px' }}>
-            <h3>Disposition de votre serre (10x4 cases)</h3>
-            <p style={{ color: '#666', marginBottom: '20px' }}>
-              Drag & Drop ou cliquez avec une plante sélectionnée pour planter. Cliquez sur une case plantée pour la vider.
-            </p>
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(4, 1fr)', 
-              gap: '4px', 
-              maxWidth: '400px',
-              margin: '0 auto',
-              padding: '20px',
-              backgroundColor: '#8B4513',
-              borderRadius: '8px'
-            }}>
-              {greenhouseGrid.map((cell, index) => (
-                <div 
-                  key={index} 
-                  onClick={() => handleGridCellClick(index)}
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, index)}
-                  style={{
-                    width: '60px',
-                    height: '60px',
-                    backgroundColor: cell ? '#27ae60' : '#8FBC8F',
-                    border: '2px solid #556B2F',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '24px',
-                    transition: 'all 0.3s ease',
-                    position: 'relative'
-                  }}
-                  onMouseOver={(e) => {
-                    if (!cell) e.target.style.backgroundColor = '#98FB98';
-                  }}
-                  onMouseOut={(e) => {
-                    if (!cell) e.target.style.backgroundColor = '#8FBC8F';
-                  }}
-                >
-                  {cell && (
-                    <div
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, cell, true, index)}
-                      style={{ cursor: 'move' }}
+              <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', flex: '1', minWidth: '400px' }}>
+                <h3>Disposition de votre serre (10x4 cases)</h3>
+                <p style={{ color: '#666', marginBottom: '20px' }}>
+                  Drag & Drop ou cliquez avec une plante sélectionnée pour planter. Cliquez sur une case plantée pour la vider.
+                </p>
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(4, 1fr)', 
+                  gap: '4px', 
+                  maxWidth: '400px',
+                  margin: '0 auto',
+                  padding: '20px',
+                  backgroundColor: '#8B4513',
+                  borderRadius: '8px'
+                }}>
+                  {greenhouseGrid.map((cell, index) => (
+                    <div 
+                      key={index} 
+                      onClick={() => handleGridCellClick(index)}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, index)}
+                      style={{
+                        width: '60px',
+                        height: '60px',
+                        backgroundColor: cell ? '#27ae60' : '#8FBC8F',
+                        border: '2px solid #556B2F',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '24px',
+                        transition: 'all 0.3s ease',
+                        position: 'relative'
+                      }}
+                      onMouseOver={(e) => {
+                        if (!cell) e.target.style.backgroundColor = '#98FB98';
+                      }}
+                      onMouseOut={(e) => {
+                        if (!cell) e.target.style.backgroundColor = '#8FBC8F';
+                      }}
                     >
-                      {cell.emoji}
+                      {cell && (
+                        <div
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, cell, true, index)}
+                          style={{ cursor: 'move' }}
+                        >
+                          {cell.emoji}
+                        </div>
+                      )}
+                      {!cell && (
+                        <div style={{ 
+                          fontSize: '14px', 
+                          color: '#556B2F', 
+                          fontWeight: 'bold' 
+                        }}>
+                          +
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {!cell && (
-                    <div style={{ 
-                      fontSize: '14px', 
-                      color: '#556B2F', 
-                      fontWeight: 'bold' 
-                    }}>
-                      +
+                  ))}
+                </div>
+                <div style={{ marginTop: '20px', display: 'flex', gap: '20px', justifyContent: 'center', fontSize: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <div style={{ width: '20px', height: '20px', backgroundColor: '#27ae60', borderRadius: '4px' }}></div>
+                    <span>Case plantée</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <div style={{ width: '20px', height: '20px', backgroundColor: '#8FBC8F', borderRadius: '4px' }}></div>
+                    <span>Case vide</span>
+                  </div>
+                </div>
+                {/* Statistiques */}
+                <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+                  <h4>📊 Statistiques de la serre</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '15px' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#27ae60' }}>
+                        {greenhouseGrid.filter(cell => cell).length}/40
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#666' }}>Cases occupées</div>
                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop: '20px', display: 'flex', gap: '20px', justifyContent: 'center', fontSize: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <div style={{ width: '20px', height: '20px', backgroundColor: '#27ae60', borderRadius: '4px' }}></div>
-                <span>Case plantée</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <div style={{ width: '20px', height: '20px', backgroundColor: '#8FBC8F', borderRadius: '4px' }}></div>
-                <span>Case vide</span>
-              </div>
-            </div>
-            {/* Statistiques */}
-            <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
-              <h4>📊 Statistiques de la serre</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '15px' }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#27ae60' }}>
-                    {greenhouseGrid.filter(cell => cell).length}/40
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#3498db' }}>
+                        {Math.round((greenhouseGrid.filter(cell => cell).length / 40) * 100)}%
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#666' }}>Taux d'occupation</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#e74c3c' }}>
+                        {40 - greenhouseGrid.filter(cell => cell).length}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#666' }}>Cases libres</div>
+                    </div>
                   </div>
-                  <div style={{ fontSize: '12px', color: '#666' }}>Cases occupées</div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#3498db' }}>
-                    {Math.round((greenhouseGrid.filter(cell => cell).length / 40) * 100)}%
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#666' }}>Taux d'occupation</div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#e74c3c' }}>
-                    {40 - greenhouseGrid.filter(cell => cell).length}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#666' }}>Cases libres</div>
                 </div>
               </div>
-            </div>
-          </div>
           {/* Sélection des plantes */}
-          <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', width: '280px', flexShrink: 0 }}>
-            <h3>🌱 Plantes disponibles</h3>
-            <p style={{ color: '#666', marginBottom: '15px', fontSize: '14px' }}>
-              Glissez-déposez ou cliquez pour sélectionner
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {availablePlants.map((plant, index) => (
-                <div 
-                  key={index} 
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, plant)}
-                  onClick={() => setSelectedPlant(selectedPlant?.name === plant.name ? null : plant)}
-                  style={{ 
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '12px', 
-                    border: `2px solid ${selectedPlant?.name === plant.name ? '#27ae60' : '#e0e0e0'}`, 
-                    borderRadius: '8px', 
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    backgroundColor: selectedPlant?.name === plant.name ? '#e8f5e8' : 'white'
-                  }}
-                  onMouseOver={(e) => {
-                    if (selectedPlant?.name !== plant.name) {
-                      e.currentTarget.style.backgroundColor = '#f8f9fa';
-                    }
-                  }}
-                  onMouseOut={(e) => {
-                    if (selectedPlant?.name !== plant.name) {
-                      e.currentTarget.style.backgroundColor = 'white';
-                    }
-                  }}
-                >
-                  <div style={{ fontSize: '32px', flexShrink: 0 }}>{plant.emoji}</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '2px' }}>{plant.name}</div>
-                    <div style={{ fontSize: '11px', color: '#666' }}>{plant.duration}</div>
-                  </div>
-                  {selectedPlant?.name === plant.name && (
-                    <div style={{ color: '#27ae60', fontSize: '16px' }}>✓</div>
-                  )}
+              <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', width: '280px', flexShrink: 0 }}>
+                <h3>🌱 Plantes disponibles</h3>
+                <p style={{ color: '#666', marginBottom: '15px', fontSize: '14px' }}>
+                  Glissez-déposez ou cliquez pour sélectionner
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {availablePlants.map((plant, index) => (
+                    <div 
+                      key={index} 
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, plant)}
+                      onClick={() => setSelectedPlant(selectedPlant?.name === plant.name ? null : plant)}
+                      style={{ 
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        padding: '12px', 
+                        border: `2px solid ${selectedPlant?.name === plant.name ? '#27ae60' : '#e0e0e0'}`, 
+                        borderRadius: '8px', 
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        backgroundColor: selectedPlant?.name === plant.name ? '#e8f5e8' : 'white'
+                      }}
+                      onMouseOver={(e) => {
+                        if (selectedPlant?.name !== plant.name) {
+                          e.currentTarget.style.backgroundColor = '#f8f9fa';
+                        }
+                      }}
+                      onMouseOut={(e) => {
+                        if (selectedPlant?.name !== plant.name) {
+                          e.currentTarget.style.backgroundColor = 'white';
+                        }
+                      }}
+                    >
+                      <div style={{ fontSize: '32px', flexShrink: 0 }}>{plant.emoji}</div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '2px' }}>{plant.name}</div>
+                        <div style={{ fontSize: '11px', color: '#666' }}>{plant.duration}</div>
+                      </div>
+                      {selectedPlant?.name === plant.name && (
+                        <div style={{ color: '#27ae60', fontSize: '16px' }}>✓</div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            {selectedPlant && (
-              <div style={{ 
-                marginTop: '15px',
-                padding: '12px', 
-                backgroundColor: '#e8f5e8', 
-                borderRadius: '6px', 
-                textAlign: 'center',
-                border: '1px solid #27ae60',
-                fontSize: '14px'
-              }}>
-                <strong>{selectedPlant.emoji} {selectedPlant.name}</strong><br />
-                <span style={{ color: '#666' }}>Cliquez sur une case pour planter</span>
+                {selectedPlant && (
+                  <div style={{ 
+                    marginTop: '15px',
+                    padding: '12px', 
+                    backgroundColor: '#e8f5e8', 
+                    borderRadius: '6px', 
+                    textAlign: 'center',
+                    border: '1px solid #27ae60',
+                    fontSize: '14px'
+                  }}>
+                    <strong>{selectedPlant.emoji} {selectedPlant.name}</strong><br />
+                    <span style={{ color: '#666' }}>Cliquez sur une case pour planter</span>
+                  </div>
+                )}
+                <div style={{ 
+                  marginTop: '20px', 
+                  padding: '12px', 
+                  backgroundColor: '#f8f9fa', 
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  color: '#666'
+                }}>
+                  <strong>💡 Instructions :</strong><br />
+                  • Glissez-déposez dans la serre<br />
+                  • Ou cliquez puis cliquez sur une case<br />
+                  • Cliquez sur une plante pour la retirer
+                </div>
               </div>
-            )}
-            <div style={{ 
-              marginTop: '20px', 
-              padding: '12px', 
-              backgroundColor: '#f8f9fa', 
-              borderRadius: '6px',
-              fontSize: '12px',
-              color: '#666'
-            }}>
-              <strong>💡 Instructions :</strong><br />
-              • Glissez-déposez dans la serre<br />
-              • Ou cliquez puis cliquez sur une case<br />
-              • Cliquez sur une plante pour la retirer
             </div>
           </div>
-        </div>
-      </div>
-    );
+        );
   };
 
   // Modifier le rendu du dashboard
@@ -1356,7 +1406,7 @@ function App() {
             ) : (
               <p>Chargement...</p>
             )}
-              </div>
+                </div>
 
           {/* Carte d'humidité */}
           <div style={{ 
@@ -1378,7 +1428,7 @@ function App() {
             ) : (
               <p>Chargement...</p>
             )}
-              </div>
+                </div>
 
           {/* Carte de luminosité */}
           <div style={{ 
@@ -1401,7 +1451,7 @@ function App() {
               <p>Chargement...</p>
             )}
               </div>
-              </div>
+            </div>
 
         {/* Graphiques des dernières 24h */}
         <div style={{ 
@@ -1598,7 +1648,7 @@ function App() {
       }
     };
 
-    return (
+        return (
       <div style={{ padding: '20px' }}>
         <h2>🌡️ Température</h2>
         
@@ -1663,8 +1713,8 @@ function App() {
             ))}
           </div>
         </div>
-      </div>
-    );
+          </div>
+        );
   };
 
   // Ajouter le rendu de la page d'humidité
@@ -1722,7 +1772,7 @@ function App() {
       }
     };
 
-    return (
+        return (
       <div style={{ padding: '20px' }}>
         <h2>💧 Humidité</h2>
         
@@ -1787,8 +1837,8 @@ function App() {
             ))}
           </div>
         </div>
-      </div>
-    );
+          </div>
+        );
   };
 
   // Ajouter le rendu de la page de luminosité
@@ -1846,10 +1896,10 @@ function App() {
       }
     };
 
-    return (
+        return (
       <div style={{ padding: '20px' }}>
         <h2>☀️ Luminosité</h2>
-        
+            
         {latestLight && (
           <div style={{ 
             backgroundColor: 'white', 
@@ -1865,7 +1915,7 @@ function App() {
             <p style={{ color: '#666', fontSize: '14px' }}>
               Mesuré le {new Date(latestLight.created_at).toLocaleString()}
             </p>
-          </div>
+              </div>
         )}
 
         <div style={{ 
@@ -1878,8 +1928,8 @@ function App() {
           <h3>Graphique de la luminosité</h3>
           <div style={{ height: '400px' }}>
             <Line data={chartData} options={chartOptions} />
-          </div>
-        </div>
+              </div>
+              </div>
 
         <div style={{ 
           backgroundColor: 'white', 
@@ -1907,7 +1957,7 @@ function App() {
                 <p style={{ color: '#666', fontSize: '12px', margin: '5px 0 0 0' }}>
                   {new Date(measure.created_at).toLocaleString()}
                 </p>
-              </div>
+            </div>
             ))}
           </div>
         </div>
@@ -1943,12 +1993,12 @@ function App() {
             </div>
             <button type="submit" style={{ marginTop: '20px', padding: '12px 24px', backgroundColor: '#4caf50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
               💾 Sauvegarder
-            </button>
+              </button>
             {success && <div style={{ color: 'green', marginTop: '10px' }}>{success}</div>}
           </form>
-        </div>
-      </div>
-    );
+            </div>
+          </div>
+        );
   };
 
   return (

@@ -1409,72 +1409,210 @@ function App() {
           padding: '20px', 
           borderRadius: '8px',
           boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          marginBottom: '30px'
+          marginBottom: '30px',
+          overflowX: 'auto'
         }}>
           <h3>Évolution sur 24h</h3>
-          <div style={{ height: '400px' }}>
-            <Line 
-              data={{
-                labels: temperatureData.map(measure => 
-                  new Date(measure.created_at).toLocaleTimeString()
-                ),
-                datasets: [
-                  {
-                    label: 'Température (°C)',
-                    data: temperatureData.map(measure => measure.val),
-                    borderColor: '#1976d2',
-                    backgroundColor: 'rgba(25, 118, 210, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                  },
-                  {
-                    label: 'Humidité (%)',
-                    data: humidityData.map(measure => measure.val),
-                    borderColor: '#2196f3',
-                    backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                  },
-                  {
-                    label: 'Luminosité (lux)',
-                    data: lightData.map(measure => measure.val),
-                    borderColor: '#ffc107',
-                    backgroundColor: 'rgba(255, 193, 7, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                  }
-                ]
-              }}
-              options={{
-                responsive: true,
-                plugins: {
-                  legend: {
-                    position: 'top',
-                  },
-                  title: {
-                    display: true,
-                    text: 'Évolution des mesures sur 24h'
-                  }
-                },
-                scales: {
-                  y: {
-                    beginAtZero: false,
-                    title: {
-                      display: true,
-                      text: 'Valeur'
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(3, minmax(300px, 1fr))', 
+            gap: '20px',
+            minWidth: '900px',
+            padding: '10px'
+          }}>
+            {/* Graphique de température */}
+            <div style={{ height: '250px' }}>
+              <h4 style={{ color: '#1976d2', marginBottom: '10px', textAlign: 'center', fontSize: '14px' }}>🌡️ Température</h4>
+              <Line 
+                data={{
+                  labels: temperatureData.map(measure => 
+                    new Date(measure.created_at).toLocaleTimeString()
+                  ),
+                  datasets: [
+                    {
+                      label: 'Température (°C)',
+                      data: temperatureData.map(measure => measure.val),
+                      borderColor: '#1976d2',
+                      backgroundColor: 'rgba(25, 118, 210, 0.1)',
+                      tension: 0.4,
+                      fill: true
+                    }
+                  ]
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      display: false
                     }
                   },
-                  x: {
-                    title: {
-                      display: true,
-                      text: 'Heure'
+                  scales: {
+                    y: {
+                      beginAtZero: false,
+                      title: {
+                        display: true,
+                        text: 'Température (°C)',
+                        font: {
+                          size: 12
+                        }
+                      },
+                      ticks: {
+                        font: {
+                          size: 11
+                        }
+                      }
+                    },
+                    x: {
+                      title: {
+                        display: true,
+                        text: 'Heure',
+                        font: {
+                          size: 12
+                        }
+                      },
+                      ticks: {
+                        maxRotation: 45,
+                        minRotation: 45,
+                        font: {
+                          size: 11
+                        }
+                      }
                     }
                   }
-                }
-              }}
-            />
-              </div>
+                }}
+              />
             </div>
+
+            {/* Graphique d'humidité */}
+            <div style={{ height: '250px' }}>
+              <h4 style={{ color: '#2196f3', marginBottom: '10px', textAlign: 'center', fontSize: '14px' }}>💧 Humidité</h4>
+              <Line 
+                data={{
+                  labels: humidityData.map(measure => 
+                    new Date(measure.created_at).toLocaleTimeString()
+                  ),
+                  datasets: [
+                    {
+                      label: 'Humidité (%)',
+                      data: humidityData.map(measure => measure.val),
+                      borderColor: '#2196f3',
+                      backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                      tension: 0.4,
+                      fill: true
+                    }
+                  ]
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      display: false
+                    }
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: false,
+                      title: {
+                        display: true,
+                        text: 'Humidité (%)',
+                        font: {
+                          size: 12
+                        }
+                      },
+                      ticks: {
+                        font: {
+                          size: 11
+                        }
+                      }
+                    },
+                    x: {
+                      title: {
+                        display: true,
+                        text: 'Heure',
+                        font: {
+                          size: 12
+                        }
+                      },
+                      ticks: {
+                        maxRotation: 45,
+                        minRotation: 45,
+                        font: {
+                          size: 11
+                        }
+                      }
+                    }
+                  }
+                }}
+              />
+            </div>
+
+            {/* Graphique de luminosité */}
+            <div style={{ height: '250px' }}>
+              <h4 style={{ color: '#ffc107', marginBottom: '10px', textAlign: 'center', fontSize: '14px' }}>☀️ Luminosité</h4>
+              <Line 
+                data={{
+                  labels: lightData.map(measure => 
+                    new Date(measure.created_at).toLocaleTimeString()
+                  ),
+                  datasets: [
+                    {
+                      label: 'Luminosité (lux)',
+                      data: lightData.map(measure => measure.val),
+                      borderColor: '#ffc107',
+                      backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                      tension: 0.4,
+                      fill: true
+                    }
+                  ]
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      display: false
+                    }
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: false,
+                      title: {
+                        display: true,
+                        text: 'Luminosité (lux)',
+                        font: {
+                          size: 12
+                        }
+                      },
+                      ticks: {
+                        font: {
+                          size: 11
+                        }
+                      }
+                    },
+                    x: {
+                      title: {
+                        display: true,
+                        text: 'Heure',
+                        font: {
+                          size: 12
+                        }
+                      },
+                      ticks: {
+                        maxRotation: 45,
+                        minRotation: 45,
+                        font: {
+                          size: 11
+                        }
+                      }
+                    }
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </div>
 
         {/* État de la serre */}
         <div style={{ 

@@ -18,6 +18,7 @@ import {
   Legend
 } from 'chart.js';
 import vegetableService from './services/vegetableService';
+import meService from './services/meService';
 
 // Enregistrer les composants Chart.js nécessaires
 ChartJS.register(
@@ -217,6 +218,10 @@ function App() {
   const [vegError, setVegError] = useState('');
   const [vegSuccess, setVegSuccess] = useState('');
   const [isVegLoading, setIsVegLoading] = useState(false);
+  const [weather, setWeather] = useState(null);
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [weatherError, setWeatherError] = useState(null);
+  const [valveOpen, setValveOpen] = useState(false);
 
   // État de la grille de la serre
   const [greenhouseGrid, setGreenhouseGrid] = useState(
@@ -1069,6 +1074,25 @@ function App() {
     }
   };
 
+  // Charger la météo de Paris au montage du dashboard
+  useEffect(() => {
+    const fetchWeather = async () => {
+      setWeatherLoading(true);
+      setWeatherError(null);
+      try {
+        // Utilisation de l'API Open-Meteo (pas besoin de clé)
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=48.8566&longitude=2.3522&current_weather=true&timezone=Europe%2FParis');
+        const data = await res.json();
+        setWeather(data.current_weather);
+      } catch (err) {
+        setWeatherError('Erreur lors du chargement de la météo');
+      } finally {
+        setWeatherLoading(false);
+      }
+    };
+    fetchWeather();
+  }, []);
+
   // Fonction composant pour rendre la page de la serre
   const GreenhousePage = () => {
     const [vegetables, setVegetables] = useState([]);
@@ -1319,10 +1343,26 @@ function App() {
 
   // Modifier le rendu du dashboard
   const renderDashboard = () => {
-        return (
+    return (
       <div style={{ padding: '20px' }}>
         <h2>📊 Tableau de bord</h2>
-        
+
+        {/* Météo Paris */}
+        <div style={{ marginBottom: '20px', background: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <h3 style={{ margin: 0 }}>🌦️ Météo à Paris</h3>
+          {weatherLoading ? (
+            <span>Chargement...</span>
+          ) : weatherError ? (
+            <span style={{ color: 'red' }}>{weatherError}</span>
+          ) : weather ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <span style={{ fontSize: '2em' }}>{weather.weathercode === 0 ? '☀️' : weather.weathercode < 4 ? '⛅' : weather.weathercode < 7 ? '☁️' : weather.weathercode < 20 ? '🌧️' : '❓'}</span>
+              <span style={{ fontSize: '1.5em', fontWeight: 'bold' }}>{weather.temperature}°C</span>
+              <span style={{ color: '#666' }}>Vent : {weather.windspeed} km/h</span>
+            </div>
+          ) : null}
+        </div>
+
         {/* Cartes des dernières mesures */}
         <div style={{ 
           display: 'grid', 
@@ -1350,7 +1390,7 @@ function App() {
             ) : (
               <p>Chargement...</p>
             )}
-              </div>
+          </div>
 
           {/* Carte d'humidité */}
           <div style={{ 
@@ -1372,7 +1412,7 @@ function App() {
             ) : (
               <p>Chargement...</p>
             )}
-              </div>
+          </div>
 
           {/* Carte de luminosité */}
           <div style={{ 
@@ -1394,8 +1434,11 @@ function App() {
             ) : (
               <p>Chargement...</p>
             )}
-              </div>
-              </div>
+          </div>
+
+          {/* Carte vanne d'eau */}
+          <WaterValveCard />
+        </div>
 
         {/* Graphiques des dernières 24h */}
         <div style={{ 
@@ -1831,25 +1874,25 @@ function App() {
                   border: '1px solid #ddd'
                 }}
               />
-            </div>
-            <button
+          </div>
+          <button
               onClick={() => {
                 setStartDate('');
                 setEndDate('');
                 setCurrentPage(1);
               }}
-              style={{
+            style={{
                 padding: '8px 16px',
                 backgroundColor: '#f44336',
-                color: 'white',
-                border: 'none',
+              color: 'white',
+              border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer'
               }}
             >
               Réinitialiser
-            </button>
-          </div>
+          </button>
+        </div>
 
           {/* Tableau des données */}
           <div style={{ overflowX: 'auto' }}>
@@ -1882,7 +1925,7 @@ function App() {
           </div>
 
           {/* Pagination */}
-          <div style={{ 
+        <div style={{ 
             display: 'flex', 
             justifyContent: 'center',
             alignItems: 'center',
@@ -1955,14 +1998,57 @@ function App() {
 
   // Composant pour la page de profil utilisateur
   const ProfilePage = () => {
-    const [fullName, setFullName] = useState('Jean Dupont');
-    const [email, setEmail] = useState('jean.dupont@email.com');
+    const [fullName, setFullName] = useState('');
+    const [email, setEmail] = useState('');
+    const [initialFullName, setInitialFullName] = useState('');
+    const [initialEmail, setInitialEmail] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
     const [success, setSuccess] = useState('');
+    const [error, setError] = useState('');
 
-    const handleSave = (e) => {
+    useEffect(() => {
+      let mounted = true;
+      setLoading(true);
+      meService.getMe().then(res => {
+        if (mounted) {
+          if (res.success) {
+            setFullName(res.data.full_name);
+            setEmail(res.data.email);
+            setInitialFullName(res.data.full_name);
+            setInitialEmail(res.data.email);
+            setError('');
+          } else {
+            setError(res.error || 'Erreur lors du chargement du profil');
+          }
+          setLoading(false);
+        }
+      });
+      return () => { mounted = false; };
+    }, []);
+
+    const handleSave = async (e) => {
       e.preventDefault();
-      setSuccess('Profil mis à jour !');
-      setTimeout(() => setSuccess(''), 2000);
+      setSuccess('');
+      setError('');
+      setSaving(true);
+      // Toujours envoyer l'email (obligatoire côté backend)
+      const data = { email };
+      if (fullName !== initialFullName) data.full_name = fullName;
+      // Si rien n'a changé, ne pas envoyer
+      if (fullName === initialFullName && email === initialEmail) {
+        setSaving(false);
+        return;
+      }
+      const res = await meService.updateMe(data);
+      if (res.success) {
+        setSuccess('Profil mis à jour !');
+        setInitialFullName(fullName);
+        setInitialEmail(email);
+      } else {
+        setError(res.error || 'Erreur lors de la mise à jour');
+      }
+      setSaving(false);
     };
 
     return (
@@ -1970,24 +2056,84 @@ function App() {
         <h2>👤 Profil utilisateur</h2>
         <div style={{ maxWidth: '600px', backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
           <h3>📋 Informations personnelles</h3>
-          <form onSubmit={handleSave} style={{ display: 'grid', gap: '15px' }}>
-            <div>
-              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>Nom complet</label>
-              <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '4px', width: '100%' }} />
-            </div>
-            <div>
-              <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>Email</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '4px', width: '100%' }} />
-            </div>
-            <button type="submit" style={{ marginTop: '20px', padding: '12px 24px', backgroundColor: '#4caf50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-              💾 Sauvegarder
-            </button>
-            {success && <div style={{ color: 'green', marginTop: '10px' }}>{success}</div>}
-          </form>
+          {loading ? (
+            <div>Chargement...</div>
+          ) : (
+            <form onSubmit={handleSave} style={{ display: 'grid', gap: '15px' }}>
+              <div>
+                <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>Nom complet</label>
+                <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '4px', width: '100%' }} />
+              </div>
+              <div>
+                <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '5px' }}>Email</label>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '4px', width: '100%' }} />
+              </div>
+              <button
+                type="submit"
+                disabled={saving || (fullName === initialFullName && email === initialEmail)}
+                style={{
+                  marginTop: '20px',
+                  padding: '12px 24px',
+                  backgroundColor: saving || (fullName === initialFullName && email === initialEmail) ? '#aaa' : '#4caf50',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: saving || (fullName === initialFullName && email === initialEmail) ? 'not-allowed' : 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                {saving ? 'Sauvegarde...' : '💾 Sauvegarder'}
+              </button>
+              {success && <div style={{ color: 'green', marginTop: '10px' }}>{success}</div>}
+              {error && <div style={{ color: 'red', marginTop: '10px' }}>{error}</div>}
+            </form>
+          )}
         </div>
       </div>
     );
   };
+
+  const WaterValveCard = () => (
+    <div style={{
+      backgroundColor: 'white',
+      padding: '20px',
+      borderRadius: '8px',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '180px',
+      minWidth: '220px'
+    }}>
+      <h3 style={{ color: '#4caf50', marginBottom: '15px' }}>🚰 Vanne d'eau</h3>
+      <div style={{ fontSize: '2.5em', marginBottom: '10px' }}>{valveOpen ? '💧' : '🚫'}</div>
+      <div style={{
+        color: valveOpen ? '#4caf50' : '#e74c3c',
+        fontWeight: 'bold',
+        fontSize: '1.2em',
+        marginBottom: '15px'
+      }}>
+        {valveOpen ? 'Ouverte' : 'Fermée'}
+      </div>
+      <button
+        onClick={() => setValveOpen(v => !v)}
+        style={{
+          padding: '10px 24px',
+          backgroundColor: valveOpen ? '#e74c3c' : '#4caf50',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          fontWeight: 'bold',
+          fontSize: '1em',
+          cursor: 'pointer',
+          transition: 'background 0.2s'
+        }}
+      >
+        {valveOpen ? 'Fermer la vanne' : 'Ouvrir la vanne'}
+      </button>
+    </div>
+  );
 
   return (
     <Router>

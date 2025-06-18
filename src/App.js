@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'r
 import authService from './services/authService';
 import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
+import SerreConditionMonitor from './components/SerreConditionMonitor';
 import temperatureService from './services/temperatureService';
 import humidityService from './services/humidityService';
 import lightService from './services/lightService';
@@ -1199,6 +1200,14 @@ function App() {
             </div>
           ) : null}
         </div>
+
+         {/* Afficheur de condition de la serre */}
+        <SerreConditionMonitor 
+          temperature={latestTemperature?.val}
+          humidity={latestHumidity?.val}
+          light={latestLight?.val}
+        />
+        
 
         {/* Cartes des dernières mesures */}
         <div style={{ 

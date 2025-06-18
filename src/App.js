@@ -232,17 +232,6 @@ function App() {
     })
   );
 
-  // Plantes disponibles
-  const availablePlants = [
-    { name: 'Tomate', emoji: '🍅', duration: '3-5 mois' },
-    { name: 'Salade', emoji: '🥬', duration: '1-2 mois' },
-    { name: 'Carotte', emoji: '🥕', duration: '3-4 mois' },
-    { name: 'Oignon', emoji: '🧅', duration: '4-6 mois' },
-    { name: 'Courgette', emoji: '🥒', duration: '2-3 mois' },
-    { name: 'Poivron', emoji: '🫑', duration: '3-4 mois' },
-    { name: 'Aubergine', emoji: '🍆', duration: '4-5 mois' },
-    { name: 'Concombre', emoji: '🥒', duration: '2-3 mois' }
-  ];
 
   useEffect(() => {
     // Vérifier si l'utilisateur est déjà connecté au chargement
@@ -252,15 +241,6 @@ function App() {
     }
   }, []);
 
-  // Fonction de connexion
-  const handleLogin = (email, password) => {
-    if (email && password) {
-      setIsLoggedIn(true);
-      setCurrentPage('dashboard');
-      return true;
-    }
-    return false;
-  };
 
   // Fonction de déconnexion
   const handleLogout = () => {
@@ -932,13 +912,16 @@ function App() {
     fetchWeather();
   }, []);
 
-  // Fonction composant pour rendre la page de la serre
+  // Composant pour la page de la serre
   const GreenhousePage = () => {
     const [vegetables, setVegetables] = useState([]);
     const [newVegetable, setNewVegetable] = useState({ name: '', emoji: '', duration: '', average_water_consumption: '' });
     const [vegError, setVegError] = useState('');
     const [vegSuccess, setVegSuccess] = useState('');
     const [isVegLoading, setIsVegLoading] = useState(false);
+    const [availablePlants, setAvailablePlants] = useState([]);
+    const [isPlantsLoading, setIsPlantsLoading] = useState(false);
+    const [plantsError, setPlantsError] = useState('');
 
     // Charger les légumes au montage
     useEffect(() => {
@@ -949,6 +932,27 @@ function App() {
         setIsVegLoading(false);
       };
       fetchVegetables();
+    }, []);
+
+    // Charger les plantes disponibles au montage
+    useEffect(() => {
+      const fetchAvailablePlants = async () => {
+        setIsPlantsLoading(true);
+        setPlantsError('');
+        try {
+          const res = await vegetableService.getAllVegetables();
+          if (res.success) {
+            setAvailablePlants(res.data);
+          } else {
+            setPlantsError('Erreur lors du chargement des plantes');
+          }
+        } catch (err) {
+          setPlantsError('Erreur lors du chargement des plantes');
+        } finally {
+          setIsPlantsLoading(false);
+        }
+      };
+      fetchAvailablePlants();
     }, []);
 
     // Gérer l'ajout d'un légume
@@ -964,8 +968,7 @@ function App() {
         setVegSuccess('Légume ajouté !');
         setNewVegetable({ name: '', emoji: '', duration: '', average_water_consumption: '' });
         // Recharger la liste
-        const reload = await vegetableService.getAllVegetables();
-        if (reload.success) setVegetables(reload.data);
+        loadVegetables();
       } else {
         setVegError(res.error || "Erreur lors de l'ajout");
       }
@@ -986,21 +989,7 @@ function App() {
           {vegError && <div style={{ color: 'red', marginTop: '8px' }}>{vegError}</div>}
           {vegSuccess && <div style={{ color: 'green', marginTop: '8px' }}>{vegSuccess}</div>}
         </div>
-        <div style={{ marginBottom: '30px', background: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-          <h3>Légumes disponibles</h3>
-          {isVegLoading ? <p>Chargement...</p> : (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-              {vegetables.map(veg => (
-                <div key={veg.id} style={{ border: '1px solid #eee', borderRadius: '8px', padding: '12px', minWidth: '120px', background: '#f8f9fa', textAlign: 'center' }}>
-                  <div style={{ fontSize: '2em' }}>{veg.emoji}</div>
-                  <div style={{ fontWeight: 'bold' }}>{veg.name}</div>
-                  <div style={{ fontSize: '12px', color: '#666' }}>{veg.duration}</div>
-                  <div style={{ fontSize: '12px', color: '#888' }}>💧 {veg.average_water_consumption} L/j</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+
         <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
           {/* Grille de la serre */}
           <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', flex: '1', minWidth: '400px' }}>
@@ -1107,46 +1096,55 @@ function App() {
             <p style={{ color: '#666', marginBottom: '15px', fontSize: '14px' }}>
               Glissez-déposez ou cliquez pour sélectionner
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {availablePlants.map((plant, index) => (
-                <div 
-                  key={index} 
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, plant)}
-                  onClick={() => setSelectedPlant(selectedPlant?.name === plant.name ? null : plant)}
-                  style={{ 
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '12px', 
-                    border: `2px solid ${selectedPlant?.name === plant.name ? '#27ae60' : '#e0e0e0'}`, 
-                    borderRadius: '8px', 
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    backgroundColor: selectedPlant?.name === plant.name ? '#e8f5e8' : 'white'
-                  }}
-                  onMouseOver={(e) => {
-                    if (selectedPlant?.name !== plant.name) {
-                      e.currentTarget.style.backgroundColor = '#f8f9fa';
-                    }
-                  }}
-                  onMouseOut={(e) => {
-                    if (selectedPlant?.name !== plant.name) {
-                      e.currentTarget.style.backgroundColor = 'white';
-                    }
-                  }}
-                >
-                  <div style={{ fontSize: '32px', flexShrink: 0 }}>{plant.emoji}</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '2px' }}>{plant.name}</div>
-                    <div style={{ fontSize: '11px', color: '#666' }}>{plant.duration}</div>
+            {isPlantsLoading ? (
+              <div style={{ textAlign: 'center', padding: '20px' }}>Chargement des plantes...</div>
+            ) : plantsError ? (
+              <div style={{ color: 'red', padding: '10px', backgroundColor: '#ffebee', borderRadius: '4px' }}>
+                {plantsError}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {availablePlants.map((plant, index) => (
+                  <div 
+                    key={plant.id} 
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, plant)}
+                    onClick={() => setSelectedPlant(selectedPlant?.name === plant.name ? null : plant)}
+                    style={{ 
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '12px', 
+                      border: `2px solid ${selectedPlant?.name === plant.name ? '#27ae60' : '#e0e0e0'}`, 
+                      borderRadius: '8px', 
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      backgroundColor: selectedPlant?.name === plant.name ? '#e8f5e8' : 'white'
+                    }}
+                    onMouseOver={(e) => {
+                      if (selectedPlant?.name !== plant.name) {
+                        e.currentTarget.style.backgroundColor = '#f8f9fa';
+                      }
+                    }}
+                    onMouseOut={(e) => {
+                      if (selectedPlant?.name !== plant.name) {
+                        e.currentTarget.style.backgroundColor = 'white';
+                      }
+                    }}
+                  >
+                    <div style={{ fontSize: '32px', flexShrink: 0 }}>{plant.emoji}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '2px' }}>{plant.name}</div>
+                      <div style={{ fontSize: '11px', color: '#666' }}>{plant.duration}</div>
+                      <div style={{ fontSize: '11px', color: '#888' }}>💧 {plant.average_water_consumption} L/j</div>
+                    </div>
+                    {selectedPlant?.name === plant.name && (
+                      <div style={{ color: '#27ae60', fontSize: '16px' }}>✓</div>
+                    )}
                   </div>
-                  {selectedPlant?.name === plant.name && (
-                    <div style={{ color: '#27ae60', fontSize: '16px' }}>✓</div>
-                  )}
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
             {selectedPlant && (
               <div style={{ 
                 marginTop: '15px',

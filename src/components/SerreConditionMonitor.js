@@ -61,7 +61,28 @@ const SerreConditionMonitor = ({ temperature, humidity, light }) => {
       marginBottom: '25px',
       boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
     }}>
-      <h3 style={{ textAlign: 'center', marginTop: 0 }}>État de la Serre</h3>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <h3 style={{ textAlign: 'center', marginTop: 0, marginBottom: 0, marginRight: '6px' }}>État de la Serre</h3>
+        <div 
+          style={{ 
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '18px',
+            height: '18px',
+            borderRadius: '50%',
+            backgroundColor: '#f1f1f1',
+            color: '#666',
+            cursor: 'help',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            marginTop: '1px'  // Ajustement fin pour l'alignement vertical
+          }}
+          title="Score = (100 - Humidité%) × 1.5 + (Température°C - 20) × 1.0 + (Luminosité/1023×100) × 0.5"
+        >
+          ?
+        </div>
+      </div>
       
       <div style={{ 
         display: 'flex', 
@@ -86,42 +107,6 @@ const SerreConditionMonitor = ({ temperature, humidity, light }) => {
         <div style={{ marginTop: '10px', color: '#666', textAlign: 'center' }}>
           {description}
         </div>
-      </div>
-      
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-around', 
-        flexWrap: 'wrap',
-        marginTop: '20px',
-        padding: '15px',
-        backgroundColor: 'rgba(0,0,0,0.02)',
-        borderRadius: '8px'
-      }}>
-        <div style={{ textAlign: 'center', margin: '10px' }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>🌡️ Température</div>
-          <div>{temperature ? `${temperature}°C` : 'N/A'}</div>
-        </div>
-        
-        <div style={{ textAlign: 'center', margin: '10px' }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>💧 Humidité</div>
-          <div>{humidity ? `${humidity}%` : 'N/A'}</div>
-        </div>
-        
-        <div style={{ textAlign: 'center', margin: '10px' }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>☀️ Luminosité</div>
-          <div>{light ? `${light} lux` : 'N/A'}</div>
-        </div>
-      </div>
-      
-      <div style={{ 
-        fontSize: '12px', 
-        color: '#999', 
-        marginTop: '15px', 
-        borderTop: '1px solid #eee',
-        paddingTop: '15px',
-        textAlign: 'center'
-      }}>
-        Score = (100 - Humidité%) × 1.5 + (Température°C - 20) × 1.0 + (Luminosité/1023×100) × 0.5
       </div>
     </div>
   );

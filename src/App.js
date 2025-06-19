@@ -238,6 +238,42 @@ function App() {
     })
   );
 
+  // Fonction pour calculer la consommation d'eau totale de la serre
+  const calculateWaterConsumption = () => {
+    let totalConsumption = 0;
+    const plantConsumption = {};
+
+    greenhouseGrid.forEach((cell, index) => {
+      if (cell) {
+        // Chercher la plante correspondante dans les données de l'API
+        const plantData = vegetables.find(veg => 
+          veg.name.toLowerCase() === cell.name.toLowerCase() || 
+          veg.emoji === cell.emoji
+        );
+
+        if (plantData && plantData.average_water_consumption) {
+          const consumption = parseFloat(plantData.average_water_consumption);
+          totalConsumption += consumption;
+          
+          // Stocker la consommation par plante pour l'affichage détaillé
+          if (!plantConsumption[cell.name]) {
+            plantConsumption[cell.name] = {
+              count: 0,
+              consumption: 0,
+              emoji: cell.emoji
+            };
+          }
+          plantConsumption[cell.name].count++;
+          plantConsumption[cell.name].consumption += consumption;
+        }
+      }
+    });
+
+    return {
+      total: totalConsumption,
+      details: plantConsumption
+    };
+  };
 
   useEffect(() => {
     // Vérifier si l'utilisateur est déjà connecté au chargement
@@ -1120,6 +1156,12 @@ function App() {
                     {40 - greenhouseGrid.filter(cell => cell).length}
                   </div>
                   <div style={{ fontSize: '12px', color: '#666' }}>Cases libres</div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'blue' }}>
+                    {calculateWaterConsumption().total.toFixed(1)}L
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>Consommation d'eau</div>
                 </div>
               </div>
             </div>

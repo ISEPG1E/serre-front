@@ -20,6 +20,9 @@ import {
 } from 'chart.js';
 import vegetableService from './services/vegetableService';
 import meService from './services/meService';
+import logo from './assets/logo.png';
+import logo1 from './assets/logo1.png';
+import greenhouseBg from './assets/greenhouse-bg.jpg';
 
 // Enregistrer les composants Chart.js nécessaires
 ChartJS.register(
@@ -38,8 +41,8 @@ const Navigation = ({ isLoggedIn, currentPage, setCurrentPage, handleLogout, sho
 
   const getNavButtonStyle = (page) => ({
     padding: '10px 15px',
-    backgroundColor: currentPage === page ? '#27ae60' : 'rgba(255,255,255,0.1)',
-    color: 'white',
+    backgroundColor: currentPage === page ? '#27ae60' : 'rgba(0,0,0,0.05)',
+    color: currentPage === page ? 'white' : '#333',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
@@ -55,13 +58,15 @@ const Navigation = ({ isLoggedIn, currentPage, setCurrentPage, handleLogout, sho
   return (
     <nav style={{ 
       padding: '20px', 
-      backgroundColor: '#2c3e50', 
-      color: 'white',
+      backgroundColor: '#f5f5dc', 
+      color: '#333',
       boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
       position: 'relative'
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-        <h2 style={{ margin: '0', color: '#27ae60' }}>🌱 Ma Serre Connectée</h2>
+        <div style={{ height: '50px', display: 'flex', alignItems: 'center' }}>
+          <img src={logo} alt="Logo Serre Connectée" style={{ height: '120px', maxHeight: '120px', marginTop: '-10px' }} />
+        </div>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <button 
@@ -70,8 +75,8 @@ const Navigation = ({ isLoggedIn, currentPage, setCurrentPage, handleLogout, sho
               display: 'block',
               padding: '8px', 
               backgroundColor: 'transparent', 
-              color: 'white', 
-              border: '1px solid #fff', 
+              color: '#333', 
+              border: '1px solid #333', 
               borderRadius: '4px', 
               cursor: 'pointer',
               fontSize: '16px'
@@ -123,7 +128,7 @@ const Navigation = ({ isLoggedIn, currentPage, setCurrentPage, handleLogout, sho
           position: 'absolute',
           top: '100%',
           right: '20px',
-          backgroundColor: '#34495e',
+          backgroundColor: '#43512a',
           borderRadius: '8px',
           padding: '15px',
           boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
@@ -377,12 +382,15 @@ function App() {
     return (
       <>
         <header style={{ 
-          backgroundColor: '#2c3e50', 
-          color: 'white', 
+          backgroundColor: '#f5f5dc', 
+          color: '#333', 
           padding: '20px',
-          textAlign: 'center'
+          textAlign: 'center',
+          position: 'relative',
+          zIndex: 2
+          
         }}>
-          <h1 style={{ margin: '0', color: '#27ae60' }}>🌱 Ma Serre Connectée</h1>
+          <h1 style={{ margin: '0', color: '#43512a' }}>🌱 Ma Serre Connectée</h1>
           <p style={{ margin: '10px 0 0 0', opacity: '0.8' }}>Système de surveillance intelligent</p>
         </header>
         <div style={{ 
@@ -392,22 +400,47 @@ function App() {
           justifyContent: 'center', 
           minHeight: '80vh',
           textAlign: 'center',
-          padding: '40px'
+           padding: '40px',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
+
+          {/* Image d'arrière-plan floue */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: `url(${greenhouseBg})`, // Vous devrez ajouter cette image dans le dossier public
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            filter: 'blur(0px)',
+            opacity: 1,
+            zIndex: 0
+          }} />
+
           <div style={{ 
             backgroundColor: 'white', 
             padding: '60px 40px', 
             borderRadius: '15px', 
             boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-            maxWidth: '500px'
+            maxWidth: '500px',
+            position: 'relative',
+            zIndex: 1
           }}>
-            <h1 style={{ 
-              fontSize: '3em', 
-              margin: '0 0 20px 0', 
-              color: '#27ae60' 
+            <div style={{
+              marginBottom: '20px'
             }}>
-              🌱 Ma Serre Connectée
-            </h1>
+              <img 
+                 src={logo1}  
+                alt="Ma Serre Connectée" 
+                style={{
+                  maxWidth: '70%',
+                  height: 'auto'
+                }}
+              />
+            </div>
             <p style={{ 
               fontSize: '1.2em', 
               color: '#666', 
@@ -422,7 +455,7 @@ function App() {
               gap: '20px', 
               margin: '30px 0'
             }}>
-              <div style={{ padding: '15px', backgroundColor: '#e3f2fd', borderRadius: '8px' }}>
+              <div style={{ padding: '15px', backgroundColor: '#f5f0e1', borderRadius: '8px' }}>
                 <div style={{ fontSize: '2em', marginBottom: '5px' }}>🌡️</div>
                 <p style={{ margin: '0', fontSize: '0.9em', color: '#1976d2' }}>Température</p>
               </div>
@@ -2055,12 +2088,14 @@ function App() {
 
         {/* Footer */}
         <footer style={{ 
-          backgroundColor: '#34495e', 
-          color: 'white', 
+          backgroundColor: '#f5f5dc', 
+          color: '#333', 
           textAlign: 'center', 
-          padding: '20px'
+          padding: '20px',
+          boxShadow: '0px -2px 6px rgba(0,0,0,0.1)',
+          position: 'relative'
         }}>
-          <p style={{ margin: '0' }}>© 2025 Ma Serre Connectée - Système IoT</p>
+          <p style={{ margin: '0' }}>© 2025 Ma Serre Connectée by DÉMÉTERIA</p>
           {isLoggedIn && (
             <p style={{ margin: '5px 0 0 0', fontSize: '12px', opacity: '0.7' }}>
               Connecté | Page: {currentPage}

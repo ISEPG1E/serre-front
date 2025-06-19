@@ -58,19 +58,20 @@ const Login = ({ setIsLoggedIn, setCurrentPage }) => {
         {/* Barre de navigation */}
         <nav style={{ 
           padding: '20px', 
-          backgroundColor: '#2c3e50', 
-          color: 'white',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+           backgroundColor: '#f5f0e1', 
+          color: '#333',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+          
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ margin: '0', color: '#27ae60' }}>🌱 Ma Serre Connectée</h2>
+            <h2 style={{ margin: '0', color: '#43512a' }}>🌱 Ma Serre Connectée</h2>
             <button 
               onClick={() => navigate('/')}
               style={{ 
                 padding: '8px 16px', 
                 backgroundColor: 'transparent', 
-                color: 'white', 
-                border: '1px solid #fff', 
+                color: '#333', 
+                border: '1px solid #ccc', 
                 borderRadius: '4px', 
                 cursor: 'pointer',
                 fontSize: '14px'
@@ -98,7 +99,7 @@ const Login = ({ setIsLoggedIn, setCurrentPage }) => {
             maxWidth: '400px'
           }}>
             <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-              <h1 style={{ color: '#27ae60', margin: '0 0 10px 0' }}>🔐 Connexion</h1>
+              <h1 style={{ color: '#43512a', margin: '0 0 10px 0' }}>🔐 Connexion</h1>
               <p style={{ color: '#666', margin: '0' }}>Connectez-vous à votre compte</p>
             </div>
 
@@ -146,7 +147,7 @@ const Login = ({ setIsLoggedIn, setCurrentPage }) => {
                 <input 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="username"
+                  placeholder="Username"
                   style={{ 
                     width: '100%', 
                     padding: '12px', 

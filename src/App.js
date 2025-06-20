@@ -549,33 +549,56 @@ function App() {
   // PAGE D'INSCRIPTION
   const RegisterPage = () => {
     const navigate = useNavigate();
+    const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [fullName, setFullName] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleRegisterSubmit = (e) => {
+    const handleRegisterSubmit = async (e) => {
       e.preventDefault();
       setError('');
+      setLoading(true);
       
-      if (!fullName || !email || !password || !confirmPassword) {
+      if (!username || !email || !password || !confirmPassword || !firstName || !lastName) {
         setError('Veuillez remplir tous les champs');
+        setLoading(false);
         return;
       }
 
       if (password !== confirmPassword) {
         setError('Les mots de passe ne correspondent pas');
+        setLoading(false);
         return;
       }
 
       if (password.length < 6) {
         setError('Le mot de passe doit contenir au moins 6 caractères');
+        setLoading(false);
         return;
       }
 
-      setIsLoggedIn(true);
-      navigate('/dashboard');
+      try {
+        const result = await authService.register({
+          username,
+          email,
+          password,
+          firstName,
+          lastName
+        });
+        
+        if (result.success) {
+          // Inscription réussie, rediriger vers la connexion
+          navigate('/login');
+        }
+      } catch (err) {
+        setError(err.response?.data?.error || err.message || 'Erreur lors de l\'inscription');
+      } finally {
+        setLoading(false);
+      }
     };
 
     return (
@@ -592,7 +615,7 @@ function App() {
           borderRadius: '15px', 
           boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
           width: '100%',
-          maxWidth: '400px'
+          maxWidth: '450px'
         }}>
           <div style={{ textAlign: 'center', marginBottom: '30px' }}>
             <h1 style={{ color: '#3498db', margin: '0 0 10px 0' }}>📝 Inscription</h1>
@@ -615,13 +638,13 @@ function App() {
           <form onSubmit={handleRegisterSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
               <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', color: '#333' }}>
-                Nom complet
+                Nom d'utilisateur *
               </label>
               <input 
                 type="text" 
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Votre nom"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Votre nom d'utilisateur"
                 style={{ 
                   width: '100%', 
                   padding: '12px', 
@@ -632,9 +655,48 @@ function App() {
               />
             </div>
 
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', color: '#333' }}>
+                  Prénom *
+                </label>
+                <input 
+                  type="text" 
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Prénom"
+                  style={{ 
+                    width: '100%', 
+                    padding: '12px', 
+                    border: '1px solid #ddd', 
+                    borderRadius: '4px',
+                    fontSize: '16px'
+                  }} 
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', color: '#333' }}>
+                  Nom *
+                </label>
+                <input 
+                  type="text" 
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Nom"
+                  style={{ 
+                    width: '100%', 
+                    padding: '12px', 
+                    border: '1px solid #ddd', 
+                    borderRadius: '4px',
+                    fontSize: '16px'
+                  }} 
+                />
+              </div>
+            </div>
+
             <div>
               <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', color: '#333' }}>
-                Email
+                Email *
               </label>
               <input 
                 type="email" 
@@ -653,7 +715,7 @@ function App() {
             
             <div>
               <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', color: '#333' }}>
-                Mot de passe
+                Mot de passe *
               </label>
               <input 
                 type="password" 
@@ -672,7 +734,7 @@ function App() {
 
             <div>
               <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', color: '#333' }}>
-                Confirmer le mot de passe
+                Confirmer le mot de passe *
               </label>
               <input 
                 type="password" 
@@ -691,19 +753,20 @@ function App() {
             
             <button 
               type="submit" 
+              disabled={loading}
               style={{ 
                 width: '100%',
                 padding: '12px', 
-                backgroundColor: '#3498db', 
+                backgroundColor: loading ? '#ccc' : '#3498db', 
                 color: 'white', 
                 border: 'none', 
                 borderRadius: '4px', 
                 fontSize: '16px',
-                cursor: 'pointer',
+                cursor: loading ? 'not-allowed' : 'pointer',
                 fontWeight: 'bold'
               }}
             >
-              S'inscrire
+              {loading ? 'Inscription en cours...' : 'S\'inscrire'}
             </button>
           </form>
           

@@ -6,6 +6,26 @@ const API_URL = process.env.NODE_ENV === 'production'
   : '/api';
 
 const authService = {
+    register: async (userData) => {
+        try {
+            const response = await axios.post(`${API_URL}/users`, {
+                username: userData.username,
+                email: userData.email,
+                password: userData.password,
+                first_name: userData.firstName,
+                last_name: userData.lastName
+            });
+            
+            if (response.data.success) {
+                return response.data;
+            }
+            throw new Error(response.data.error || 'Registration failed');
+        } catch (error) {
+            console.error('Erreur d\'inscription:', error);
+            throw error;
+        }
+    },
+
     login: async (username, password) => {
         try {
             const response = await axios.post(`${API_URL}/login`, {

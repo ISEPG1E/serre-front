@@ -1673,17 +1673,17 @@ function App() {
     const currentItems = sortedData.slice(indexOfFirstItem, indexOfLastItem);
     const totalPages = Math.ceil(sortedData.length / itemsPerPage);
 
-    const latestMeasure = data[0];
+    const latestMeasure = sortedData[0];
 
     // Préparer les données pour le graphique
     const chartData = {
-      labels: data.map(measure => 
+      labels: sortedData.slice().reverse().map(measure => 
         new Date(measure.created_at).toLocaleTimeString()
       ),
       datasets: [
         {
           label: `${title} (${unit})`,
-          data: data.map(measure => measure.val),
+          data: sortedData.slice().reverse().map(measure => measure.val),
           borderColor: '#1976d2',
           backgroundColor: 'rgba(25, 118, 210, 0.1)',
           tension: 0.4,
